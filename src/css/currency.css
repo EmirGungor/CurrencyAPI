@@ -1,0 +1,32 @@
+.currency-div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 50px;
+  width: 450px;
+  height: 200px;
+  border: 1px solid black;
+}
+
+.value{
+    width: 80px;
+    height: 25px;
+    margin-right: 10px;
+}
+
+.opt{
+    width: 70px;
+    height: 30px;
+    margin-right: 10px;
+}
+
+.btn{
+    width: 80px;
+    height: 30px;
+    color: white;
+    background-color: black;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}

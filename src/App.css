@@ -1,0 +1,11 @@
+body{
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  background-image: url(images/31e0525c-a010-4bab-a828-c3a19029304d.webp);
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
+
+}
