@@ -52,10 +52,9 @@ h3 {
   margin-right: 10px;
 }
 
-@media screen and (max-width:868px) {
+@media screen and (max-width: 868px) {
   .currency-div {
-  transform: scale(1);
-
+    transform: scale(1);
+    margin-top: 30vh;
   }
-
 }
