@@ -11,7 +11,7 @@ let API_KEY = "fca_live_eG1QfuVZDcMeBxhjgW7BaqPU3ieBFBAuhtWPASII";
 
 const Currency = () => {
   const [amount, setAmount] = useState(0);
-  const [fromCurrency, setFromCurrency] = useState("PLN");
+  const [fromCurrency, setFromCurrency] = useState("USD");
   const [toCurrency, setToCurrency] = useState("TRY");
   const [result, setResult] = useState(0);
 
