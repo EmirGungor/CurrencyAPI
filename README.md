@@ -1,137 +1,88 @@
-# 💱 Crental Currency – React Tabanlı Döviz Çevirici
-
-Küçük ama işlevsel bir **döviz çevirici**. Modern bir kart tasarımı, mobil‑öncelikli (mobile‑first) Grid düzeni, swap (para birimlerini değiştir) butonu, yükleniyor/hata durumları ve "**1 USD = … TRY**" gibi bilgilendirici oran satırı içerir.
-
-> ⚠️ **Not (Güvenlik):** Örnek projede API anahtarı client tarafında gösterilmiştir. **Canlı ortamda** `.env` + backend **proxy** kullanarak gizlemeniz önerilir.
-
----
-
-## 🚀 Özellikler
-
-- ✅ **Modern, responsive UI** (cam efekti, yumuşak gölgeler, büyük dokunma hedefleri)
-- 🔁 **Swap** (USD⇄TRY gibi para birimlerini tek tıkla değiştir)
-- 📈 **Anlık kur bilgisi** ve bilgilendirici oran metni (ör. `1 USD = 34.1234 TRY`)
-- ⏳ **Loading / Error** durumları (buton kilitlenir, mesajlar gösterilir)
-- ♿ **Erişilebilirlik**: Label/aria nitelikleri, belirgin focus ring
-- 🧭 **Mobile‑first**: Küçük ekranlarda tek sütun, ≥640px’de iki sütun
-
----
-
-## 🛠️ Kullanılan Teknolojiler
-- **React** (Hooks: `useState`, `useEffect`, `useMemo`)
-- **axios** ile HTTP istekleri
-- **react-icons** (swap ikonu)
-- **Plain CSS** (Component bazlı, değişken destekli tema)
-
----
-
-## 📦 Kurulum & Çalıştırma
-
-```bash
-# 1) Repoyu klonlayın
-git clone https://github.com/EmirGungor/<repo-adi>.git
-cd <repo-adi>
-
-# 2) Bağımlılıkları yükleyin
-npm install
-
-# 3) Geliştirme sunucusunu başlatın
-npm run dev
-```
-
-Vite kullanıyorsanız terminalde verilen **localhost** adresini açın.
-
----
-
-## 🔐 Ortam Değişkenleri (Önerilen)
-**Canlı** veya paylaşılacak ortamlarda anahtarı saklamak için:
-
-```bash
-# .env
-VITE_FREECURRENCY_API_KEY=xxxxxxxxxxxxxxxxxxxxxxxx
-```
-
-```js
-// src/constants.js
-export const BASE_URL = "https://api.freecurrencyapi.com/v1/latest";
-export const API_KEY = import.meta.env.VITE_FREECURRENCY_API_KEY; // Vite
-```
-
-> 💡 Daha iyi güvenlik için bir **Node/Express proxy** veya mevcut backend’inize bir **/api/rates** uç noktası ekleyin ve anahtarı **server tarafında** kullanın.
-
----
-
-## 📂 Proje Yapısı
-```plaintext
-📦 src
-├── 📂 components
-│   └── 📄 Currency.jsx       # Ana döviz çevirici bileşeni
+# 💱 Crental Currency – React Currency Converter
 ├── 📂 css
-│   └── 📄 currency.css       # Modern, mobile-first stil dosyası
-├── 📄 App.jsx                # Sayfa düzeni + BuyMeACoffee sabit butonu
-└── 📄 main.jsx               # Giriş noktası
+│ └── 📄 currency.css # Modern, mobile‑first stylesheet
+├── 📄 App.jsx # Page layout + fixed BuyMeACoffee button
+└── 📄 main.jsx # Entry point
 ```
 
----
-
-## 🧭 Kullanım
-1. Miktarı gir (örn. `100`).
-2. Kaynak ve hedef para birimlerini seç (örn. `USD → TRY`).
-3. **Swap** butonuyla yönü değiştir.
-4. **Convert** (ya da formu gönder) → sonuç otomatik hesaplanır.
-
-> Kur bilgisi, **kaynak para birimi** değiştiğinde otomatik yenilenir; sonuç alanı **salt okunur** olarak tutulur.
 
 ---
 
-## 📱 Ekran Görüntüleri
-> Bu alanı kendi ekran görüntülerinle güncelle.
 
-| Mobil | Masaüstü |
+## 🧭 Usage
+1. Enter an amount (e.g., `100`).
+2. Select source and target currencies (e.g., `USD → TRY`).
+3. Use the **Swap** button to flip direction if needed.
+4. Click **Convert** (or submit the form) → the result is calculated.
+
+
+> Rates refresh automatically whenever the **source currency** changes; the result field is **read‑only**.
+
+
+---
+
+
+## 📱 Screenshots
+> Replace these placeholders with your own screenshots.
+
+
+| Mobile | Desktop |
 |---|---|
 | ![mobile](https://github.com/user-attachments/assets/placeholder-mobile) | ![desktop](https://github.com/user-attachments/assets/placeholder-desktop) |
 
----
-
-## 🗺️ Yol Haritası
-- [ ] Para birimlerini API’den **dinamik** çekme + arama yapılabilen select
-- [ ] Son **5 çeviri geçmişi**
-- [ ] **Ters yönde** anlık hesaplama (to→from)
-- [ ] **İsteğe bağlı** PWA (offline ekranı, ikonlar)
 
 ---
 
-## 🤝 Katkıda Bulunma
-Katkılar memnuniyetle karşılanır!
+
+## 🗺️ Roadmap
+- [ ] Fetch currency list **dynamically** from API + searchable select
+- [ ] Keep last **5 conversions** as history
+- [ ] **Reverse** live calculation (to→from)
+- [ ] Optional **PWA** (offline screen, icons)
+
+
+---
+
+
+## 🤝 Contributing
+Contributions are welcome!
+
 
 ```bash
-# yeni bir dal oluşturun
+# create a new branch
 git checkout -b feat/responsive-improvements
-# değişiklikleri commit’leyin
-git commit -m "feat(ui): responsive iyileştirmeler"
-# dalı gönderin
+# commit your changes
+git commit -m "feat(ui): responsive improvements"
+# push the branch
 git push origin feat/responsive-improvements
 ```
 
-Ardından bir **Pull Request** açın. Kod stili ve dosya yapısını korumaya dikkat edin.
+
+Then open a **Pull Request**. Please stick to the existing code style and structure.
+
 
 ---
 
-## 🧪 Notlar / İpuçları
-- Renkler ve ölçüler **CSS değişkenleri** üzerinden geliyor (`:root`).
-- Başlık rengi başka bir global kural tarafından **eziliyorsa**, `.currency-card .title` ile özgüllüğü artırın.
-- Dokunmatik hedefler ≥44px; erişilebilirlik için **focus ring** açık.
+
+## 🧪 Tips & Notes
+- Colors and sizes come from **CSS variables** (`:root`).
+- If the title color gets overridden by some global CSS, increase specificity with `.currency-card .title`.
+- Touch targets are ≥44px; focus ring is visible for accessibility.
+
 
 ---
 
-## 📄 Lisans
-MIT — Dilediğiniz gibi kullanın, geliştirin, paylaşın.
+
+## 📄 License
+MIT — Use, modify, and share freely.
+
 
 ---
 
-## 🙏 Teşekkür
-- [freecurrencyapi.com](https://freecurrencyapi.com/) kur verileri için
-- İkonlar: [react-icons](https://react-icons.github.io/react-icons/)
 
-> Geri bildirimlerin varsa **Issues** bölümünde paylaşabilirsin. Keyifli kodlamalar! 🚀
+## 🙏 Acknowledgments
+- [freecurrencyapi.com](https://freecurrencyapi.com/) for currency data
+- Icons by [react-icons](https://react-icons.github.io/react-icons/)
 
+
+> If you have feedback, open an **Issue**. Happy coding! 🚀
