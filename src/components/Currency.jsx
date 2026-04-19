@@ -66,7 +66,7 @@ export default function Currency() {
   return (
     <div className="currency-page">
       <div className="currency-card" role="region" aria-label="Döviz çevirici">
-        <h3 className="title">Crental Currency</h3>
+        <h3 className="title">Döviz Çevirici</h3>
 
         <form
           className="form"
