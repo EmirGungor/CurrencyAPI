@@ -1,9 +1,11 @@
-import React, { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { FaBitcoin, FaEthereum } from "react-icons/fa";
 import { GiGoldBar } from "react-icons/gi";
 import { COINGECKO_BASE } from "../config";
 import { useI18n } from "../i18n";
+import { useSmartPoll } from "../lib/useSmartPoll";
+import { isCryptoOpen } from "../lib/marketHours";
 import Sparkline from "./Sparkline";
 
 const ASSETS = [
@@ -82,12 +84,13 @@ export default function MarketCards() {
     }
   }, []);
 
+  // Sparklines load once (7d data doesn't change minute-to-minute)
   useEffect(() => {
-    load();
     loadSparks();
-    const iv = setInterval(load, 45_000);
-    return () => clearInterval(iv);
-  }, [load, loadSparks]);
+  }, [loadSparks]);
+
+  // Crypto trades 24/7 — refresh every 30s, paused only when tab is hidden.
+  useSmartPoll(load, { isOpen: isCryptoOpen, openMs: 30_000 });
 
   return (
     <section className="bist-section">
@@ -101,7 +104,10 @@ export default function MarketCards() {
           </button>
         ) : (
           <span className="section-meta">
-            {loading ? t("common.loading") : t("section.refresh", { n: 45 })}
+            <span className="status-dot status-dot-up" aria-hidden="true" />
+            <span className="status-label">{t("section.alwaysOpen")}</span>
+            <span className="status-sep">·</span>
+            <span>{loading ? t("common.loading") : t("section.refresh", { n: 30 })}</span>
           </span>
         )}
       </div>

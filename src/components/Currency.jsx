@@ -1,9 +1,11 @@
-import React, { useEffect, useMemo, useState, useCallback, useRef } from "react";
+import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { FaExchangeAlt, FaHistory, FaTrash, FaSearch } from "react-icons/fa";
 import axios from "axios";
 import { FREECURRENCY_API_KEY, FREECURRENCY_BASE } from "../config";
 import { loadHistory, pushHistory, clearHistory } from "../lib/storage";
 import { useI18n } from "../i18n";
+import { useSmartPoll } from "../lib/useSmartPoll";
+import { isForexOpen } from "../lib/marketHours";
 
 const FALLBACK_CURRENCIES = ["USD", "EUR", "TRY", "PLN", "GBP", "AUD", "CAD", "JPY", "CHF", "CNY"];
 
@@ -140,16 +142,13 @@ export default function Currency() {
     }
   }, [fromCurrency, t]);
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      await fetchRates();
-      if (cancelled) return;
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [fetchRates]);
+  // Auto-refresh FX rates every 5 min while forex is open, hourly otherwise.
+  useSmartPoll(fetchRates, {
+    isOpen: isForexOpen,
+    openMs: 5 * 60_000,
+    closedMs: 60 * 60_000,
+    deps: [fromCurrency],
+  });
 
   // Forward calc: amount (from) → result (to)
   const result = useMemo(() => {

@@ -24,6 +24,37 @@
   font-size: 11px;
   color: var(--dim);
   letter-spacing: 0.3px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  display: inline-block;
+}
+.status-dot-up {
+  background: var(--up);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--up) 18%, transparent);
+  animation: ts-pulse 1.8s ease-in-out infinite;
+}
+.status-dot-off {
+  background: var(--dim);
+  opacity: 0.65;
+}
+.status-label {
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: var(--text);
+}
+.status-sep {
+  opacity: 0.45;
+}
+@media (prefers-reduced-motion: reduce) {
+  .status-dot-up { animation: none; }
 }
 .retry-btn {
   font-size: 12px;

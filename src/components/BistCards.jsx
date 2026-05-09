@@ -1,7 +1,9 @@
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { FaLiraSign, FaEuroSign, FaCoins } from "react-icons/fa";
 import { GiGoldBar, GiSilverBullet } from "react-icons/gi";
 import { useI18n } from "../i18n";
+import { useSmartPoll } from "../lib/useSmartPoll";
+import { isForexOpen } from "../lib/marketHours";
 
 const TR_DATA_URL = "https://finans.truncgil.com/today.json";
 
@@ -141,11 +143,12 @@ export default function BistCards() {
     }
   }, [t]);
 
-  useEffect(() => {
-    load();
-    const iv = setInterval(load, 60_000);
-    return () => clearInterval(iv);
-  }, [load]);
+  // Forex (USD/TRY etc.) drives most of these — 60s when open, 5min when closed.
+  const { open } = useSmartPoll(load, {
+    isOpen: isForexOpen,
+    openMs: 60_000,
+    closedMs: 5 * 60_000,
+  });
 
   const locale = lang === "tr" ? "tr-TR" : "en-US";
   const names = ASSET_NAMES[lang] || ASSET_NAMES.tr;
@@ -162,11 +165,22 @@ export default function BistCards() {
           </button>
         ) : (
           <span className="section-meta">
-            {loading
-              ? t("common.loading")
-              : updatedAt
-              ? `${updatedAt} · ${t("section.refresh", { n: 60 })}`
-              : t("section.refresh", { n: 60 })}
+            <span className={`status-dot ${open ? "status-dot-up" : "status-dot-off"}`} aria-hidden="true" />
+            <span className="status-label">{open ? t("section.open") : t("section.closed")}</span>
+            <span className="status-sep">·</span>
+            <span>
+              {loading
+                ? t("common.loading")
+                : open
+                ? t("section.refresh", { n: 60 })
+                : t("section.refreshM", { n: 5 })}
+            </span>
+            {updatedAt && (
+              <>
+                <span className="status-sep">·</span>
+                <span className="mc-dim">{updatedAt}</span>
+              </>
+            )}
           </span>
         )}
       </div>

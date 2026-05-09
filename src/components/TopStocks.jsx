@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useI18n } from "../i18n";
 import {
   NASDAQ_TOP,
@@ -7,6 +7,8 @@ import {
   fetchStooq,
   fetchBistQuotes,
 } from "../lib/stocks";
+import { useSmartPoll } from "../lib/useSmartPoll";
+import { isBistOpen, isUsMarketOpen } from "../lib/marketHours";
 
 const MARKETS = [
   { id: "bist", label: "BIST 30", flag: "🇹🇷" },
@@ -65,15 +67,19 @@ export default function TopStocks() {
     }
   }, [t]);
 
-  useEffect(() => {
-    load(active);
-  }, [active, load]);
+  // Per-tab market-hours predicate: paused outside market hours.
+  const isOpenForActive = useCallback(() => {
+    if (active === "bist") return isBistOpen();
+    if (active === "nasdaq" || active === "sp500") return isUsMarketOpen();
+    return false;
+  }, [active]);
 
-  // Periodic refresh for active tab
-  useEffect(() => {
-    const iv = setInterval(() => load(active), 90_000);
-    return () => clearInterval(iv);
-  }, [active, load]);
+  const { open } = useSmartPoll(() => load(active), {
+    isOpen: isOpenForActive,
+    openMs: 30_000,
+    closedMs: 0, // paused when closed — last close stays on screen
+    deps: [active],
+  });
 
   const rows = useMemo(() => data[active] || [], [data, active]);
   const isLoading = loading[active];
@@ -88,8 +94,11 @@ export default function TopStocks() {
     <section className="top-stocks" aria-label={labels.title}>
       <div className="ts-head">
         <div className="ts-title">
-          <span className="ts-pulse" aria-hidden="true" />
+          <span className={`ts-pulse ${open ? "" : "is-off"}`} aria-hidden="true" />
           <span>{labels.title}</span>
+          <span className="ts-status">
+            {open ? t("section.open") : t("section.closed")}
+          </span>
         </div>
         <div className="ts-tabs" role="tablist">
           {MARKETS.map((m) => (
