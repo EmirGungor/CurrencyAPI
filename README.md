@@ -1,136 +1,123 @@
-# 💱 Crental Currency – React Currency Converter
+# Crental — Döviz · Kripto · Altın · Türkiye Piyasaları
 
-A small yet handy **currency converter** built with React. It features a modern glassy card UI, mobile‑first grid layout, a **swap** button, loading/error states, and an informative line like "**1 USD = … TRY**".
+Modern, hızlı, mobil uyumlu bir finans paneli. Canlı döviz çevirici, kripto fiyatları (BTC, ETH, XAU), Türk piyasası verileri (USD/TRY, EUR/TRY, GBP/TRY, CHF/TRY ve gram/çeyrek/yarım/tam/cumhuriyet altın + gümüş), ışık/karanlık tema, TR/EN dil seçimi ve PWA desteği.
 
-> ⚠️ **Security Note:** In this example project the API key is exposed on the client. For **production**, use `.env` and a backend **proxy** to keep the key server‑side.
+## Özellikler
 
----
+- **Çoklu kaynak piyasa kartları**
+  - Kripto + ons altın: CoinGecko (BTC, ETH, XAU/USDT) — 7 günlük sparkline ile
+  - Türkiye piyasaları: truncgil (USD/TRY, EUR/TRY, GBP/TRY, CHF/TRY, gram altın, çeyrek/yarım/tam/cumhuriyet altın, gümüş)
+- **Akıllı döviz çevirici**
+  - 30+ para birimi için **dinamik liste** (freecurrencyapi `/currencies` endpointi)
+  - **Aranabilir** combobox (kod veya isimle)
+  - **Çift yönlü hesap**: hem kaynaktan hedefe hem hedeften kaynağa anlık dönüştürme
+  - **localStorage geçmişi** (son 8 çevirme — tek tıkla geri yükleme)
+- **Tema sistemi** — `data-theme` attribute ile light/dark, tercih localStorage'a kaydedilir
+- **Çift dil** — TR / EN UI metinleri (custom hafif i18n provider)
+- **PWA** — yüklenebilir, offline cache (truncgil + CoinGecko + freecurrencyapi 5–60 dk)
+- **Erişilebilirlik** — interaktif öğelerde aria-label, focus ring, klavye desteği
+- **SEO + sosyal paylaşım** — title/description, OpenGraph, Twitter card, OG image
 
-## 🚀 Features
+## Teknoloji
 
-- ✅ **Modern, responsive UI** (glass effect, soft shadows, large touch targets)
-- 🔁 **Swap currencies** (e.g., USD⇄TRY) with one click
-- 📈 **Live rate info** with a helpful line (e.g., `1 USD = 34.1234 TRY`)
-- ⏳ **Loading / Error states** (button disables, messages displayed)
-- ♿ **Accessibility**: Proper labels/aria and visible focus rings
-- 🧭 **Mobile‑first** layout: single column on small screens, two columns ≥640px
+- **Vite 5** + **React 18**
+- `axios` (FX), native `fetch` (truncgil)
+- `react-icons` (FA + Game Icons)
+- `vite-plugin-pwa` (Workbox)
+- Plain CSS — `src/styles/*.css` modüllerine bölünmüş
 
----
-
-## 🛠️ Tech Stack
-- **React** (Hooks: `useState`, `useEffect`, `useMemo`)
-- **axios** for HTTP requests
-- **react-icons** (swap icon)
-- **Plain CSS** (component‑scoped styles with CSS variables)
-
----
-
-## 📦 Installation & Setup
+## Kurulum
 
 ```bash
-# 1) Clone the repo
-git clone https://github.com/EmirGungor/<repo-name>.git
-cd <repo-name>
-
-# 2) Install dependencies
+git clone <repo-url>
+cd CurrencyAPI-main
 npm install
-
-# 3) Start the dev server
-npm run dev
+cp .env.example .env  # ardından kendi API key'ini gir
+npm run dev           # http://localhost:5173
 ```
 
-If you’re using Vite, open the **localhost** URL printed in the terminal.
-
----
-
-## 🔐 Environment Variables (Recommended)
-Keep your API key secret in **production** or when sharing the project:
-
+### `.env`
 ```bash
-# .env
-VITE_FREECURRENCY_API_KEY=xxxxxxxxxxxxxxxxxxxxxxxx
+VITE_FREECURRENCY_API_KEY=fca_live_...
 ```
+Anahtarı [freecurrencyapi.com](https://freecurrencyapi.com/) üzerinden ücretsiz alabilirsin.
 
-```js
-// src/constants.js
-export const BASE_URL = "https://api.freecurrencyapi.com/v1/latest";
-export const API_KEY = import.meta.env.VITE_FREECURRENCY_API_KEY; // Vite
-```
-
-> 💡 For better security, add a **Node/Express proxy** or a backend endpoint like **/api/rates** and use the key **server‑side** only.
-
----
-
-## 📂 Project Structure
-```plaintext
-📦 src
-├── 📂 components
-│   └── 📄 Currency.jsx       # Main currency converter component
-├── 📂 css
-│   └── 📄 currency.css       # Modern, mobile‑first stylesheet
-├── 📄 App.jsx                # Page layout + fixed BuyMeACoffee button
-└── 📄 main.jsx               # Entry point
-```
-
----
-
-## 🧭 Usage
-1. Enter an amount (e.g., `100`).
-2. Select source and target currencies (e.g., `USD → TRY`).
-3. Use the **Swap** button to flip direction if needed.
-4. Click **Convert** (or submit the form) → the result is calculated.
-
-> Rates refresh automatically whenever the **source currency** changes; the result field is **read‑only**.
-
----
-
-## 📱 Screenshots
-> Replace these placeholders with your own screenshots.
-
-| Mobile | Desktop |
-|---|---|
-| ![mobile](https://github.com/user-attachments/assets/placeholder-mobile) | ![desktop](https://github.com/user-attachments/assets/placeholder-desktop) |
-
----
-
-## 🗺️ Roadmap
-- [ ] Fetch currency list **dynamically** from API + searchable select
-- [ ] Keep last **5 conversions** as history
-- [ ] **Reverse** live calculation (to→from)
-- [ ] Optional **PWA** (offline screen, icons)
-
----
-
-## 🤝 Contributing
-Contributions are welcome!
-
+## Komutlar
 ```bash
-# create a new branch
-git checkout -b feat/responsive-improvements
-# commit your changes
-git commit -m "feat(ui): responsive improvements"
-# push the branch
-git push origin feat/responsive-improvements
+npm run dev       # Vite dev server (HMR)
+npm run build     # production build (PWA assets dahil)
+npm run preview   # build çıktısını lokalde sun
+npm run lint      # ESLint
 ```
 
-Then open a **Pull Request**. Please stick to the existing code style and structure.
+## Proje yapısı
+```
+src/
+├── components/
+│   ├── BistCards.jsx         # Türkiye piyasası kartları (truncgil)
+│   ├── BuyMeACofee.jsx
+│   ├── Currency.jsx          # Çevirici + dinamik liste + history
+│   ├── HeaderControls.jsx    # Dil + tema toggle
+│   ├── MarketCards.jsx       # Kripto + altın (CoinGecko)
+│   └── Sparkline.jsx         # SVG mini chart
+├── i18n/
+│   └── index.jsx             # I18nProvider + STRINGS
+├── theme/
+│   └── ThemeProvider.jsx     # data-theme yönetimi
+├── lib/
+│   ├── storage.js            # localStorage helpers (history/theme/lang)
+│   └── yfinance.js           # Yahoo Finance helper (proxy üzerinden)
+├── styles/
+│   ├── tokens.css            # CSS değişkenleri (light + dark)
+│   ├── base.css              # body / app-shell / header / footer
+│   ├── cards.css             # market kartları + sparkline
+│   ├── currency.css          # çevirici card + form + input
+│   └── controls.css          # tema/dil butonları + combo + history
+├── config.js                 # API anahtarları + base URL'ler
+├── App.css                   # @import hub
+├── App.jsx
+└── main.jsx                  # Provider sarmalamaları
+api/
+├── yfinance.js               # Vercel serverless proxy (BIST için)
+└── yfinance-chart.js         # Vercel serverless chart proxy
+```
 
----
+## Veri kaynakları
 
-## 🧪 Tips & Notes
-- Colors and sizes come from **CSS variables** (`:root`).
-- If the title color gets overridden by some global CSS, increase specificity with `.currency-card .title`.
-- Touch targets are ≥44px; focus ring is visible for accessibility.
+| Kaynak | Endpoint | Kullanım |
+|---|---|---|
+| **freecurrencyapi** | `/v1/latest`, `/v1/currencies` | Çevirici kurları + tüm para listesi |
+| **CoinGecko** | `/simple/price`, `/coins/{id}/market_chart` | BTC/ETH/XAU + 7g sparkline |
+| **truncgil** | `https://finans.truncgil.com/today.json` | TRY pariteleri + altın çeşitleri + gümüş |
+| **Yahoo Finance** *(opt.)* | `/v7/finance/quote`, `/v8/finance/chart` | XU100/XU030 BIST endeksleri (proxy gerekiyor) |
 
----
+## BIST 100 / 30 (XU100, XU030) hakkında
 
-## 📄 License
-MIT — Use, modify, and share freely.
+`src/lib/yfinance.js` + `api/yfinance*.js` ile altyapı hazır — geliştirmede `vite.config.js`'teki `/yf` proxy, üretimde Vercel serverless function (`api/yfinance.js`) kullanılır. Yahoo Finance şu anda çoğu bölgede crumb/cookie tabanlı oranlama uygular; sandbox/CI'da 429 alınabilir. Üretimde Vercel proxy genellikle çalışır.
 
----
+Daha güvenilir alternatifler:
+- [collectAPI](https://collectapi.com/) `/economy/dailyBist` (API key gerektirir)
+- TradingView UDF (self-host)
+- KAP (resmi açıklamalar — gerçek zamanlı endeks yok)
 
-## 🙏 Acknowledgments
-- [freecurrencyapi.com](https://freecurrencyapi.com/) for currency data
-- Icons by [react-icons](https://react-icons.github.io/react-icons/)
+Şu an **Türkiye Piyasaları** kartları truncgil'den besleniyor (USD/TRY, EUR/TRY, GBP/TRY, CHF/TRY, gram/çeyrek/yarım/tam/cumhuriyet altın, gümüş) — Türk kullanıcı için BIST endeksinden çoğu zaman daha aksiyonel veri.
 
-> If you have feedback, open an **Issue**. Happy coding! 🚀
+## Üretim — güvenli API key
+
+`.env`'deki `VITE_*` değişkenler Vite tarafından **client bundle'a gömülür**. Üretim için:
+
+1. **Vercel** (veya Netlify) ile deploy et — `api/` klasöründeki proxy fonksiyonları otomatik çalışır.
+2. Frontend'i `/api/rates` gibi proxy'lere yönlendir, key'i sadece sunucu env'inde tut.
+3. `VITE_FREECURRENCY_API_KEY`'i client'tan kaldır, fonksiyonun içinden `process.env.FREECURRENCY_API_KEY` ile çağır.
+
+`api/yfinance.js` örneği aynı patterni kullanır — kopyalayıp yeni bir `api/rates.js` yazabilirsin.
+
+## Yol haritası
+
+- [ ] BIST 100/30 entegrasyonu (collectAPI veya alternatif kaynak)
+- [ ] FX çeviriciye chart (haftalık/aylık trend)
+- [ ] Watchlist (favori para çiftleri)
+- [ ] Push bildirim (eşik fiyat alarmı)
+
+## Lisans
+MIT

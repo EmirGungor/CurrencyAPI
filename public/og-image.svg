@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#060914"/>
+      <stop offset="100%" stop-color="#121a3a"/>
+    </linearGradient>
+    <linearGradient id="logo" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#7c5cff"/>
+      <stop offset="50%" stop-color="#4a7dff"/>
+      <stop offset="100%" stop-color="#26d07c"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="200" cy="100" r="180" fill="#7c5cff" opacity="0.18"/>
+  <circle cx="1100" cy="500" r="220" fill="#26d07c" opacity="0.14"/>
+  <rect x="80" y="80" width="80" height="80" rx="20" fill="url(#logo)"/>
+  <text x="180" y="140" font-family="Inter, sans-serif" font-size="56" font-weight="800" fill="white">Crental</text>
+  <text x="180" y="180" font-family="Inter, sans-serif" font-size="22" font-weight="500" fill="#9aa3b8" letter-spacing="2">DÖVİZ · KRİPTO · ALTIN · BIST</text>
+  <text x="80" y="380" font-family="Inter, sans-serif" font-size="72" font-weight="800" fill="white">Tek panelde,</text>
+  <text x="80" y="470" font-family="Inter, sans-serif" font-size="72" font-weight="800" fill="url(#logo)">canlı finans verisi.</text>
+  <text x="80" y="560" font-family="Inter, sans-serif" font-size="28" font-weight="500" fill="#9aa3b8">USD/TRY · EUR/TRY · XU100 · XU030 · BTC · ETH · XAU</text>
+</svg>
