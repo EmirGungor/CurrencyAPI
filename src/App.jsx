@@ -1,47 +1,69 @@
 import "./App.css";
-import BuyMeACoffee from "./components/BuyMeACofee";
-import Currency from "./components/Currency";
-import MarketCards from "./components/MarketCards";
-import BistCards from "./components/BistCards";
-import TopStocks from "./components/TopStocks";
-import HeaderControls from "./components/HeaderControls";
+import TopBar from "./components/TopBar";
+import Sidebar from "./components/Sidebar";
+import {
+  DashboardPage,
+  StocksPage,
+  CryptoPage,
+  GoldFxPage,
+  TerminalPage,
+  FundsPage,
+  ComingSoonPage,
+} from "./components/RoutePages";
+import { useRoute } from "./lib/router";
 import { useI18n } from "./i18n";
 
+const ROUTE_LABELS = {
+  portfolio: "nav.portfolio",
+  indices: "nav.indices",
+  etf: "nav.etf",
+  futures: "nav.futures",
+  technical: "nav.technical",
+  live: "nav.live",
+  tchat: "nav.tchat",
+  community: "nav.community",
+  news: "nav.news",
+  posts: "nav.posts",
+};
+
 function App() {
+  const { route } = useRoute();
   const { t } = useI18n();
+
+  let page;
+  switch (route) {
+    case "stocks":
+      page = <StocksPage />;
+      break;
+    case "crypto":
+      page = <CryptoPage />;
+      break;
+    case "gold-fx":
+      page = <GoldFxPage />;
+      break;
+    case "terminal":
+      page = <TerminalPage />;
+      break;
+    case "funds":
+      page = <FundsPage />;
+      break;
+    case "dashboard":
+      page = <DashboardPage />;
+      break;
+    default: {
+      const labelKey = ROUTE_LABELS[route];
+      page = <ComingSoonPage id={route} label={labelKey ? t(labelKey) : route} />;
+    }
+  }
+
   return (
-    <>
-      <div className="app-shell">
-        <header className="app-header">
-          <div className="brand">
-            <span className="brand-mark" aria-hidden="true" />
-            <span className="brand-name">Crental</span>
-            <span className="brand-sub">Currency</span>
-          </div>
-          <div className="header-right">
-            <span className="brand-tag">{t("brand.tag")}</span>
-            <HeaderControls />
-          </div>
-        </header>
-
-        <main className="app-main">
-          <MarketCards />
-          <TopStocks />
-          <BistCards />
-          <Currency />
-        </main>
-
-        <footer className="app-footer">
-          <span>© {new Date().getFullYear()} Crental</span>
-          <span className="dot">•</span>
-          <span>{t("footer.tag")}</span>
-        </footer>
+    <div className="app-shell">
+      <TopBar />
+      <div className="shell-body">
+        <Sidebar />
+        <main className="main">{page}</main>
       </div>
-
-      <div className="bmc-floating">
-        <BuyMeACoffee />
-      </div>
-    </>
+    </div>
   );
 }
 

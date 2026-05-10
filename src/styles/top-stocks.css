@@ -108,77 +108,68 @@
   line-height: 1;
 }
 
-/* Horizontal scrolling ticker strip */
+/* Vertical list of ticker rows (Bloomberg-style sidebar) */
 .ts-strip {
   display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-  padding: 4px 2px 6px;
-  margin: 0 -4px;
-  scrollbar-width: thin;
-  scrollbar-color: var(--border-strong) transparent;
-  /* Soft fade on right edge to hint at scroll */
-  mask-image: linear-gradient(90deg, transparent 0, #000 12px, #000 calc(100% - 18px), transparent 100%);
-  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 12px, #000 calc(100% - 18px), transparent 100%);
-}
-.ts-strip::-webkit-scrollbar {
-  height: 5px;
-}
-.ts-strip::-webkit-scrollbar-thumb {
-  background: var(--border-strong);
-  border-radius: 999px;
+  flex-direction: column;
+  gap: 1px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--border);
 }
 
-/* Each ticker pill */
 .ts-item {
-  flex: 0 0 auto;
-  min-width: 124px;
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: baseline;
+  gap: 10px;
   padding: 9px 12px;
-  border-radius: 12px;
   background: var(--surface);
-  border: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  scroll-snap-align: start;
-  transition: border-color 0.15s, background 0.15s, transform 0.15s;
+  border: none;
+  width: 100%;
+  text-align: left;
+  color: var(--text);
+  font: inherit;
+  cursor: default;
+  transition: background 0.15s, color 0.15s;
 }
-.ts-item:hover {
-  border-color: var(--border-strong);
+.ts-item.is-clickable { cursor: pointer; }
+.ts-item.is-clickable:hover {
   background: var(--surface-2);
-  transform: translateY(-1px);
+}
+.ts-item.is-clickable:hover .ts-sym {
+  color: var(--primary);
 }
 .ts-sym-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  /* used in old layout — unused in vertical mode but kept for ARIA-friendly markup */
+  display: contents;
 }
 .ts-sym {
   font-weight: 700;
-  font-size: 12.5px;
+  font-size: 13px;
   letter-spacing: 0.3px;
   color: var(--text);
   font-variant-numeric: tabular-nums;
 }
-.ts-pct {
-  font-size: 11px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.2px;
-}
-.ts-pct.up { color: var(--up); }
-.ts-pct.down { color: var(--down); }
-
 .ts-price {
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 700;
   color: var(--text);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.2px;
+  text-align: right;
+  min-width: 76px;
 }
+.ts-pct {
+  font-size: 11.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.2px;
+  text-align: right;
+  min-width: 56px;
+}
+.ts-pct.up { color: var(--up); }
+.ts-pct.down { color: var(--down); }
 
 /* Skeleton */
 .ts-item.is-skeleton {
@@ -195,20 +186,12 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 14px;
+  padding: 14px;
   color: var(--muted);
   font-size: 13px;
+  background: var(--surface);
+  border-radius: 10px;
 }
 .ts-error {
   color: var(--down);
-}
-
-@media (max-width: 540px) {
-  .ts-tab span:not(.ts-flag) {
-    /* Keep flags + first letter on tiny screens (still readable) */
-  }
-  .ts-item {
-    min-width: 108px;
-    padding: 8px 10px;
-  }
 }

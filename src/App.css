@@ -1,5 +1,9 @@
 @import "./styles/tokens.css";
 @import "./styles/base.css";
+@import "./styles/shell.css";
+@import "./styles/sidebar.css";
+@import "./styles/quickstats.css";
+@import "./styles/winners-losers.css";
 @import "./styles/cards.css";
 @import "./styles/currency.css";
 @import "./styles/controls.css";

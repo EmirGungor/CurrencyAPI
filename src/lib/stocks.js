@@ -41,31 +41,18 @@ export const BIST_TOP = [
   { symbol: "SISE", code: "SISE", name: "Şişecam" },
 ];
 
-// Stooq: parse CSV → [{symbol, close, change, changePct}]
-export async function fetchStooq(symbols) {
-  const list = symbols.map((s) => `${s.toLowerCase()}.us`).join(",");
-  const r = await fetch(`/api/stooq?symbols=${encodeURIComponent(list)}`);
-  if (!r.ok) throw new Error(`stooq ${r.status}`);
-  const text = await r.text();
-  const lines = text.trim().split(/\r?\n/);
-  const [header, ...rows] = lines;
-  const cols = header.split(",");
-  const idxSym = cols.indexOf("Symbol");
-  const idxOpen = cols.indexOf("Open");
-  const idxClose = cols.indexOf("Close");
-  return rows
-    .map((line) => {
-      const parts = line.split(",");
-      const sym = (parts[idxSym] || "").replace(/\.US$/, "");
-      const open = parseFloat(parts[idxOpen]);
-      const close = parseFloat(parts[idxClose]);
-      if (!Number.isFinite(close)) return { symbol: sym, close: null };
-      const change = Number.isFinite(open) ? close - open : null;
-      const pct = Number.isFinite(open) && open !== 0 ? ((close - open) / open) * 100 : null;
-      return { symbol: sym, close, change, changePct: pct };
-    })
-    .filter(Boolean);
+// NASDAQ.com batch quote (replaces Stooq which hit daily-limit on shared sandbox IPs).
+// Returns the same shape: [{symbol, close, change, changePct, name}]
+export async function fetchNasdaqQuotes(symbols) {
+  const list = symbols.map((s) => s.toUpperCase()).join(",");
+  const r = await fetch(`/api/nasdaq-batch?symbols=${encodeURIComponent(list)}`);
+  if (!r.ok) throw new Error(`nasdaq ${r.status}`);
+  const data = await r.json();
+  return (data?.results || []).filter((x) => x && !x.error);
 }
+
+// Backwards-compatible alias — keeps any old import working.
+export const fetchStooq = fetchNasdaqQuotes;
 
 // BIST: fetch quotes via İş Yatırım proxy (Yahoo-shaped response)
 export async function fetchBistQuotes(symbols) {

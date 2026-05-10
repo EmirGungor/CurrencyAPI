@@ -36,25 +36,8 @@ body::before {
   z-index: 0;
 }
 
-.app-shell {
-  position: relative;
-  z-index: 1;
-  min-height: 100%;
-  max-width: 1120px;
-  margin: 0 auto;
-  padding: 28px 24px 40px;
-  display: flex;
-  flex-direction: column;
-  gap: 28px;
-}
-
-/* Header */
-.app-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px 2px;
-}
+/* Legacy header — superseded by .topbar; kept for fallback */
+.app-header { display: none; }
 .brand {
   display: flex;
   align-items: center;
@@ -92,6 +75,19 @@ body::before {
 .app-main {
   display: grid;
   gap: 28px;
+}
+
+/* Bottom row: TopStocks sidebar + Currency Converter */
+.app-bottom {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  align-items: start;
+}
+@media (min-width: 900px) {
+  .app-bottom {
+    grid-template-columns: 320px 1fr;
+  }
 }
 
 /* Footer */

@@ -1,0 +1,213 @@
+/* App shell — TopBar + Sidebar + Main */
+.app-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: var(--topbar-h) 1fr;
+  background: var(--bg-0);
+}
+
+/* TopBar */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  height: var(--topbar-h);
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+}
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.topbar-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.topbar-brand .brand-mark {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: conic-gradient(from 210deg, #7c5cff, #4a7dff, #26d07c, #7c5cff);
+  box-shadow: 0 6px 18px rgba(124, 92, 255, 0.35);
+}
+.topbar-brand .brand-name {
+  font-weight: 800;
+  font-size: 17px;
+  letter-spacing: 0.2px;
+}
+.topbar-brand .brand-sub {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+  margin-left: -2px;
+}
+.topbar-search {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  width: 280px;
+  color: var(--muted);
+}
+.topbar-search input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-size: 13px;
+}
+@media (min-width: 900px) {
+  .topbar-search { display: inline-flex; }
+}
+.topbar-icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.topbar-icon-btn:hover {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--border);
+}
+.topbar-time {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+.topbar-time .t-date {
+  font-size: 11px;
+  color: var(--muted);
+}
+.topbar-time .t-clock {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.3px;
+}
+
+/* Body row: sidebar + main */
+.shell-body {
+  display: grid;
+  grid-template-columns: var(--sidebar-w-collapsed) 1fr;
+  min-height: 0;
+}
+@media (min-width: 1100px) {
+  .shell-body {
+    grid-template-columns: var(--sidebar-w) 1fr;
+  }
+}
+
+/* Main */
+.main {
+  min-width: 0;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: var(--maxw);
+  width: 100%;
+}
+.page-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.page-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+}
+
+/* 2-col main grid */
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+@media (min-width: 1100px) {
+  .main-grid {
+    grid-template-columns: minmax(0, 1fr) 360px;
+  }
+}
+.main-grid-left {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+.main-grid-right {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+
+/* Generic panel/card */
+.panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, var(--card-2), var(--card));
+}
+.panel-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--text);
+}
+.panel-title svg {
+  color: var(--primary);
+  font-size: 14px;
+}
+.panel-meta {
+  font-size: 11px;
+  color: var(--dim);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.panel-body {
+  padding: 14px;
+}
+.panel-body.no-pad {
+  padding: 0;
+}
+
+:root[data-theme="light"] .panel {
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}

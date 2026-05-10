@@ -9,6 +9,9 @@ import {
 } from "../lib/stocks";
 import { useSmartPoll } from "../lib/useSmartPoll";
 import { isBistOpen, isUsMarketOpen } from "../lib/marketHours";
+import { useSearch } from "../lib/search";
+import { useSelection } from "../lib/selection";
+import { useRoute } from "../lib/router";
 
 const MARKETS = [
   { id: "bist", label: "BIST 30", flag: "🇹🇷" },
@@ -28,7 +31,32 @@ const formatPrice = (v, locale = "en-US") => {
 
 export default function TopStocks() {
   const { t, lang } = useI18n();
+  const { matches } = useSearch();
+  const { setSelection } = useSelection();
+  const { setRoute } = useRoute();
   const [active, setActive] = useState("nasdaq");
+
+  const onPickStock = (r) => {
+    if (active === "bist") {
+      setSelection({
+        kind: "stock",
+        market: "bist",
+        symbol: r.code || r.symbol,
+        vs: "TRY",
+        label: `${r.code || r.symbol} · BIST`,
+      });
+      setRoute("stocks");
+    } else {
+      setSelection({
+        kind: "stock",
+        market: "us",
+        symbol: r.symbol,
+        vs: "USD",
+        label: `${r.symbol} · ${active === "nasdaq" ? "NASDAQ" : "S&P 500"}`,
+      });
+      setRoute("stocks");
+    }
+  };
   const [data, setData] = useState({ bist: [], nasdaq: [], sp500: [] });
   const [loading, setLoading] = useState({ bist: false, nasdaq: false, sp500: false });
   const [error, setError] = useState({});
@@ -81,7 +109,35 @@ export default function TopStocks() {
     deps: [active],
   });
 
-  const rows = useMemo(() => data[active] || [], [data, active]);
+  // Always render the canonical symbol list so the UI shows structure even when
+  // upstream is rate-limited or down. Fetched values merge on top where available.
+  const baseList = useMemo(() => {
+    if (active === "bist") return BIST_TOP;
+    if (active === "sp500") return SP500_TOP;
+    return NASDAQ_TOP;
+  }, [active]);
+
+  const rows = useMemo(() => {
+    const fetched = data[active] || [];
+    const byKey = new Map();
+    for (const r of fetched) {
+      byKey.set((r.symbol || "").toUpperCase(), r);
+      if (r.code) byKey.set(r.code.toUpperCase(), r);
+    }
+    const merged = baseList.map((b) => {
+      const key = (b.code || b.symbol || "").toUpperCase();
+      const f = byKey.get(key);
+      return {
+        symbol: b.symbol,
+        code: b.code,
+        name: b.name,
+        close: f && Number.isFinite(f.close) ? f.close : null,
+        change: f?.change ?? null,
+        changePct: f?.changePct ?? null,
+      };
+    });
+    return merged.filter((r) => matches(r.symbol, r.code, r.name));
+  }, [baseList, data, active, matches]);
   const isLoading = loading[active];
   const err = error[active];
   const locale = lang === "tr" ? "tr-TR" : "en-US";
@@ -130,6 +186,7 @@ export default function TopStocks() {
             <div key={i} className="ts-item is-skeleton">
               <span className="ts-sym">···</span>
               <span className="ts-price">···</span>
+              <span className="ts-pct">···</span>
             </div>
           ))
         ) : rows.length === 0 ? (
@@ -139,17 +196,21 @@ export default function TopStocks() {
             const up = (r.changePct ?? 0) >= 0;
             const sym = isBist ? r.code || r.symbol.replace(".IS", "") : r.symbol;
             return (
-              <div key={r.symbol} className="ts-item" title={r.name}>
-                <div className="ts-sym-row">
-                  <span className="ts-sym">{sym}</span>
-                  <span className={`ts-pct ${up ? "up" : "down"}`}>
-                    {r.changePct == null ? "—" : `${up ? "+" : ""}${r.changePct.toFixed(2)}%`}
-                  </span>
-                </div>
-                <div className="ts-price">
+              <button
+                key={r.symbol}
+                type="button"
+                className="ts-item is-clickable"
+                title={r.name || sym}
+                onClick={() => onPickStock(r)}
+              >
+                <span className="ts-sym">{sym}</span>
+                <span className="ts-price">
                   {currency}{formatPrice(r.close, locale)}
-                </div>
-              </div>
+                </span>
+                <span className={`ts-pct ${up ? "up" : "down"}`}>
+                  {r.changePct == null ? "—" : `${up ? "+" : ""}${r.changePct.toFixed(2)}%`}
+                </span>
+              </button>
             );
           })
         )}

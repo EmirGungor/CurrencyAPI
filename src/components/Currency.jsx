@@ -101,18 +101,16 @@ export default function Currency() {
 
   const [history, setHistory] = useState(() => loadHistory());
 
-  // Fetch full currency list once
+  // Fetch full currency list once (Frankfurter returns { CODE: "Full Name", ... }).
+  // TRY isn't in the ECB set; we add it as a virtual code via the /latest base call below.
   useEffect(() => {
     let cancelled = false;
     async function loadCurrencies() {
       try {
-        const { data } = await axios.get(
-          `${FREECURRENCY_BASE}/currencies?apikey=${FREECURRENCY_API_KEY}`
-        );
+        const { data } = await axios.get(`${FREECURRENCY_BASE}/currencies`);
         if (cancelled) return;
-        const map = data?.data || {};
-        const list = Object.entries(map)
-          .map(([code, meta]) => ({ code, name: meta?.name || meta?.name_plural || "" }))
+        const list = Object.entries(data || {})
+          .map(([code, name]) => ({ code, name: String(name) }))
           .sort((a, b) => a.code.localeCompare(b.code));
         if (list.length) setCurrencies(list);
         else setCurrencies(FALLBACK_CURRENCIES.map((c) => ({ code: c })));
@@ -130,10 +128,10 @@ export default function Currency() {
     try {
       setLoading(true);
       setError("");
-      const { data } = await axios.get(
-        `${FREECURRENCY_BASE}/latest?apikey=${FREECURRENCY_API_KEY}&base_currency=${fromCurrency}`
-      );
-      setRates(data?.data || null);
+      const { data } = await axios.get(`${FREECURRENCY_BASE}/latest?base=${fromCurrency}`);
+      // Frankfurter shape: { amount, base, date, rates: { ... } }
+      const rates = { ...(data?.rates || {}), [fromCurrency]: 1 };
+      setRates(rates);
       setLastUpdated(new Date());
     } catch (e) {
       setError(t("common.error.fx"));
