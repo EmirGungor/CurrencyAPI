@@ -8,16 +8,24 @@ import { useRoute } from "../lib/router";
 
 const TR_URL = "https://finans.truncgil.com/today.json";
 
+// Robust money parser — handles "$4,715.44" (US), "4.715,44" (TR), "₺6.875,62", "-1,23" etc.
 const parseTr = (s) => {
   if (typeof s !== "string") return null;
-  const n = parseFloat(s.replace(/\./g, "").replace(",", "."));
+  let c = s.replace(/[^\d.,\-]/g, ""); // strip $, ₺, %, € etc.
+  if (!c) return null;
+  const lastComma = c.lastIndexOf(",");
+  const lastDot = c.lastIndexOf(".");
+  if (lastComma > lastDot) {
+    // TR style: "4.715,44" → thousands="." decimal=","
+    c = c.replace(/\./g, "").replace(",", ".");
+  } else {
+    // US style: "4,715.44" → thousands="," decimal="."
+    c = c.replace(/,/g, "");
+  }
+  const n = parseFloat(c);
   return Number.isFinite(n) ? n : null;
 };
-const parsePct = (s) => {
-  if (typeof s !== "string") return null;
-  const n = parseFloat(s.replace("%", "").replace(/\./g, "").replace(",", "."));
-  return Number.isFinite(n) ? n : null;
-};
+const parsePct = (s) => parseTr(s);
 
 const fmt = (v, decimals, locale = "tr-TR") => {
   if (v == null) return "—";

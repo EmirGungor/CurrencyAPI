@@ -13,6 +13,7 @@ import GoldList from "./GoldList";
 import TopStocks from "./TopStocks";
 import Currency from "./Currency";
 import FundsPanel from "./FundsPanel";
+import CryptoList from "./CryptoList";
 
 export function DashboardPage() {
   const { t } = useI18n();
@@ -91,9 +92,11 @@ export function CryptoPage() {
       <div className="main-grid">
         <div className="main-grid-left">
           <BigChart />
+          <CryptoList />
         </div>
         <div className="main-grid-right">
-          <TopStocks />
+          <Currency />
+          <GoldList />
         </div>
       </div>
     </>

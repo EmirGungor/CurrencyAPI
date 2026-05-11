@@ -87,6 +87,20 @@
 .wl-row.is-clickable { cursor: pointer; }
 .wl-row.is-clickable:hover .wl-rank { color: var(--primary); }
 
+.cl-tabs-row {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px 14px 4px;
+}
+.cl-tabs {
+  display: inline-flex;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 2px;
+  gap: 2px;
+}
+
 .fund-badge {
   display: inline-block;
   font-size: 10.5px;

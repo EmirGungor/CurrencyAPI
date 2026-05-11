@@ -23,14 +23,16 @@ const GOLD_KEYS = [
 
 const parseTr = (s) => {
   if (typeof s !== "string") return null;
-  const n = parseFloat(s.replace(/\./g, "").replace(",", "."));
+  let c = s.replace(/[^\d.,\-]/g, "");
+  if (!c) return null;
+  const lastComma = c.lastIndexOf(",");
+  const lastDot = c.lastIndexOf(".");
+  if (lastComma > lastDot) c = c.replace(/\./g, "").replace(",", ".");
+  else c = c.replace(/,/g, "");
+  const n = parseFloat(c);
   return Number.isFinite(n) ? n : null;
 };
-const parsePct = (s) => {
-  if (typeof s !== "string") return null;
-  const n = parseFloat(s.replace("%", "").replace(/\./g, "").replace(",", "."));
-  return Number.isFinite(n) ? n : null;
-};
+const parsePct = (s) => parseTr(s);
 
 export default function GoldList() {
   const { t, lang } = useI18n();
