@@ -14,6 +14,7 @@ import TopStocks from "./TopStocks";
 import Currency from "./Currency";
 import FundsPanel from "./FundsPanel";
 import CryptoList from "./CryptoList";
+import { useSelection } from "../lib/selection";
 
 export function DashboardPage() {
   const { t } = useI18n();
@@ -40,22 +41,16 @@ export function DashboardPage() {
 
 export function FundsPage() {
   const { t } = useI18n();
+  const { selection } = useSelection();
+  const showChart = selection?.kind === "fund";
   return (
     <>
-      <div className="page-head">
-        <h1 className="page-title">{t("nav.funds")}</h1>
+      <div className="page-head" style={{ flexDirection: "column", alignItems: "flex-start", gap: 4 }}>
+        <h1 className="page-title">{t("fp.pageTitle")}</h1>
+        <p style={{ margin: 0, fontSize: 13, color: "var(--muted)" }}>{t("fp.pageSubtitle")}</p>
       </div>
-      <QuickStats />
-      <div className="main-grid">
-        <div className="main-grid-left">
-          <BigChart />
-          <FundsPanel />
-        </div>
-        <div className="main-grid-right">
-          <GoldList />
-          <Currency />
-        </div>
-      </div>
+      {showChart && <BigChart />}
+      <FundsPanel />
     </>
   );
 }
