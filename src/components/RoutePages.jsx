@@ -13,6 +13,7 @@ import GoldList from "./GoldList";
 import TopStocks from "./TopStocks";
 import Currency from "./Currency";
 import FundsPanel from "./FundsPanel";
+import FundDetail from "./FundDetail";
 import CryptoList from "./CryptoList";
 import { useSelection } from "../lib/selection";
 
@@ -41,15 +42,23 @@ export function DashboardPage() {
 
 export function FundsPage() {
   const { t } = useI18n();
-  const { selection } = useSelection();
-  const showChart = selection?.kind === "fund";
+  const { selection, setSelection } = useSelection();
+  const isDetail = selection?.kind === "fund";
+
+  if (isDetail) {
+    return (
+      <FundDetail
+        onBack={() => setSelection({ kind: "forex", from: "USD", to: "TRY", label: "USD/TRY" })}
+      />
+    );
+  }
+
   return (
     <>
       <div className="page-head" style={{ flexDirection: "column", alignItems: "flex-start", gap: 4 }}>
         <h1 className="page-title">{t("fp.pageTitle")}</h1>
         <p style={{ margin: 0, fontSize: 13, color: "var(--muted)" }}>{t("fp.pageSubtitle")}</p>
       </div>
-      {showChart && <BigChart />}
       <FundsPanel />
     </>
   );

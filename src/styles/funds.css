@@ -365,3 +365,157 @@
   text-align: center;
   border-top: 1px solid var(--border);
 }
+
+/* Fund Detail */
+.fd-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.fd-header {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 18px;
+}
+.fd-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 14px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.fd-back:hover { background: var(--surface); color: var(--text); }
+.fd-title-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+.fd-mgr-logo-lg {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: var(--mgr, #7c5cff);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  box-shadow: 0 6px 18px -8px color-mix(in oklab, var(--mgr) 60%, transparent);
+}
+.fd-title-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.fd-code-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.fd-code {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: var(--text);
+}
+.fd-tefas-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  background: color-mix(in oklab, var(--up) 14%, transparent);
+  color: var(--up);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.fd-risk-label {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 500;
+}
+.fd-name {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.35;
+}
+.fd-sub {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.fd-sub .fd-sep { opacity: 0.6; }
+
+/* Metric strip */
+.fd-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+@media (min-width: 640px) { .fd-metrics { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 1100px) { .fd-metrics { grid-template-columns: repeat(6, 1fr); } }
+
+.fd-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.fd-metric-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.fd-metric-value {
+  font-size: 20px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  letter-spacing: -0.2px;
+}
+.fd-metric-sub {
+  font-size: 10.5px;
+  color: var(--dim);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.fd-metric-up .fd-metric-value { color: var(--up); }
+.fd-metric-down .fd-metric-value { color: var(--down); }
+
+.fd-info-panel .fd-dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  row-gap: 8px;
+  column-gap: 14px;
+  font-size: 13px;
+}
+.fd-info-panel dt {
+  color: var(--muted);
+  font-weight: 600;
+}
+.fd-info-panel dd {
+  margin: 0;
+  color: var(--text);
+}
