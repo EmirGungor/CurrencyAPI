@@ -22,7 +22,10 @@ export default async function handler(req, res) {
     upstream = `https://api.nasdaq.com/api/quote/${encodeURIComponent(norm)}/info?assetclass=stocks`;
   }
   try {
-    const r = await fetch(upstream, { headers: { "User-Agent": UA, Accept: "application/json" } });
+    const r = await fetch(upstream, {
+      headers: { "User-Agent": UA, Accept: "application/json" },
+      signal: AbortSignal.timeout(8000),
+    });
     if (!r.ok) return res.status(r.status).json({ error: `upstream ${r.status}` });
     const body = await r.text();
     res.setHeader("Cache-Control", "s-maxage=60, stale-while-revalidate=120");

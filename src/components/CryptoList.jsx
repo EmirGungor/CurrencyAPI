@@ -7,6 +7,10 @@ import { useSearch } from "../lib/search";
 import { useSelection } from "../lib/selection";
 import { useRoute } from "../lib/router";
 import { CRYPTO_GROUPS, fetchCryptoQuotes } from "../lib/cryptoList";
+import { subscribeTicker } from "../lib/binanceWs";
+import AssetIcon from "./AssetIcon";
+import TickValue from "./TickValue";
+import Freshness from "./Freshness";
 
 const TABS = [
   { id: "top", labelTr: "Top", labelEn: "Top" },
@@ -49,6 +53,30 @@ export default function CryptoList() {
     load();
   }, [active, load]);
 
+  // Live WebSocket ticks for current tab — overrides REST data per-second.
+  useEffect(() => {
+    const group = CRYPTO_GROUPS[active] || [];
+    const unsubs = group.map((item) =>
+      subscribeTicker(item.binance, (tick) => {
+        setData((s) => {
+          const rows = (s[active] || []).slice();
+          const idx = rows.findIndex((r) => r.symbol === item.binance);
+          const next = {
+            symbol: item.binance,
+            close: tick.close,
+            change: tick.change,
+            changePct: tick.changePct,
+            volume: tick.volume,
+          };
+          if (idx >= 0) rows[idx] = next;
+          else rows.push(next);
+          return { ...s, [active]: rows };
+        });
+      })
+    );
+    return () => unsubs.forEach((fn) => fn());
+  }, [active]);
+
   const onPick = (item) => {
     setSelection({
       kind: "crypto",
@@ -83,10 +111,7 @@ export default function CryptoList() {
         {error ? (
           <button className="retry-btn" type="button" onClick={load}>{t("common.retry")}</button>
         ) : (
-          <span className="panel-meta">
-            <span className="status-dot status-dot-up" aria-hidden />
-            <span className="status-label">{t("section.alwaysOpen")}</span>
-          </span>
+          <Freshness ts={Date.now()} isOpen={true} loading={false} />
         )}
       </div>
 
@@ -134,10 +159,19 @@ export default function CryptoList() {
                     onClick={() => onPick(r)}
                     title={`${r.name} chart →`}
                   >
-                    <td><span className="wl-rank"><strong>{r.symbol}</strong></span></td>
+                    <td>
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                        <AssetIcon kind="crypto" symbol={r.symbol} size={20} />
+                        <strong>{r.symbol}</strong>
+                      </span>
+                    </td>
                     <td style={{ color: "var(--muted)", fontSize: 12 }}>{r.name}</td>
                     <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
-                      ${formatPrice(r.close)}
+                      {r.close == null ? (
+                        <span style={{ color: "var(--muted)" }}>—</span>
+                      ) : (
+                        <TickValue value={r.close} prefix="$" format={(v) => formatPrice(v)} />
+                      )}
                     </td>
                     <td className={`wl-pct ${up ? "up" : "down"}`}>
                       {r.changePct == null ? "—" : `${up ? "+" : ""}${r.changePct.toFixed(2)}%`}

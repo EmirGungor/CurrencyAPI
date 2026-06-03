@@ -24,7 +24,10 @@ export default async function handler(req, res) {
     const results = await Promise.all(
       symbols.map(async (sym) => {
         const url = `https://www.isyatirim.com.tr/_layouts/15/IsYatirim.Website/Common/Data.aspx/HisseTekil?hisse=${encodeURIComponent(sym)}&startdate=${start}&enddate=${end}`;
-        const r = await fetch(url, { headers: { "User-Agent": UA, Accept: "application/json" } });
+        const r = await fetch(url, {
+          headers: { "User-Agent": UA, Accept: "application/json" },
+          signal: AbortSignal.timeout(6000),
+        });
         if (!r.ok) return { symbol: sym, error: `upstream ${r.status}` };
         const data = await r.json();
         const rows = data?.value || [];

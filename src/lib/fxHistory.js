@@ -31,16 +31,25 @@ function startFor(range) {
   return d;
 }
 
+import { withCache } from "./dataCache";
+
 export async function fetchFxHistory(from, to, range) {
   const start = fmt(startFor(range));
   const end = fmt(new Date());
-  const url = `${BASE}/${start}..${end}?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`;
-  const r = await fetch(url);
-  if (!r.ok) throw new Error(`fx history ${r.status}`);
-  const data = await r.json();
-  const rates = data?.rates || {};
-  return Object.keys(rates)
-    .sort()
-    .map((d) => ({ date: d, value: rates[d]?.[to] }))
-    .filter((p) => Number.isFinite(p.value));
+  const key = `fx:${from}:${to}:${range}`;
+  return withCache(
+    key,
+    async (signal) => {
+      const url = `${BASE}/${start}..${end}?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`;
+      const r = await fetch(url, { signal });
+      if (!r.ok) throw new Error(`fx history ${r.status}`);
+      const data = await r.json();
+      const rates = data?.rates || {};
+      return Object.keys(rates)
+        .sort()
+        .map((d) => ({ date: d, value: rates[d]?.[to] }))
+        .filter((p) => Number.isFinite(p.value));
+    },
+    { feed: "fx", freshMs: 60_000 }
+  );
 }

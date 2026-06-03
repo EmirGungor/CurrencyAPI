@@ -23,6 +23,7 @@ import {
 import { useI18n } from "../i18n";
 import { useSelection } from "../lib/selection";
 import { FUND_LIST, MANAGER_NAMES, fetchFundHistory, summarizePoints } from "../lib/funds";
+import SnapshotBadge from "./SnapshotBadge";
 
 const RISK_LABEL = {
   tr: ["", "Çok Düşük", "Düşük", "Orta-Düşük", "Orta", "Orta-Yüksek", "Yüksek", "Çok Yüksek"],
@@ -209,11 +210,12 @@ export default function FundDetail({ onBack }) {
               {fund.managerCode.slice(0, 2)}
             </div>
             <div className="fdv-id-meta">
-              <div className="fdv-id-code">
+              <div className="fdv-id-code" style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <h1>{fund.code}</h1>
                 <button type="button" className="fdv-fav" onClick={() => setFavorite((v) => !v)} aria-label="favorite">
                   {favorite ? <FaStar style={{ color: "#eab308" }} /> : <FaRegStar />}
                 </button>
+                <SnapshotBadge compact snapshotDate="11 May" />
               </div>
               <p className="fdv-id-name">{fund.name}</p>
               <span className="fdv-id-mgr">{mgrName.toUpperCase()}</span>

@@ -6,6 +6,9 @@ import { isUsMarketOpen } from "../lib/marketHours";
 import { fetchStooq } from "../lib/stocks";
 import { useSelection } from "../lib/selection";
 import { useRoute } from "../lib/router";
+import Freshness from "./Freshness";
+import { Shimmer, ErrorState } from "./DataState";
+import TickValue from "./TickValue";
 
 // Curated wider universe so we can compute winners/losers within a known set.
 const UNIVERSE = [
@@ -66,11 +69,28 @@ export default function WinnersLosers() {
           {r.symbol}
         </span>
       </td>
-      <td>${fmtPrice(r.close)}</td>
+      <td className="num">
+        {r.close == null ? <span style={{ color: "var(--muted)" }}>—</span> : (
+          <TickValue value={r.close} prefix="$" format={(v) => fmtPrice(v)} />
+        )}
+      </td>
       <td className={`wl-pct ${dir}`}>
         {dir === "up" ? "+" : ""}
         {r.changePct.toFixed(2)}%
       </td>
+    </tr>
+  );
+
+  const renderSkelRow = (i) => (
+    <tr key={`sk${i}`}>
+      <td>
+        <span className="wl-rank">
+          <span className="wl-rank-num">{i + 1}</span>
+          <Shimmer width={42} height={11} />
+        </span>
+      </td>
+      <td><Shimmer width={56} height={11} /></td>
+      <td><Shimmer width={42} height={11} /></td>
     </tr>
   );
 
@@ -81,17 +101,12 @@ export default function WinnersLosers() {
           <FaTrophy />
           {t("wl.title")}
         </span>
-        <span className="panel-meta">
-          <span className={`status-dot ${open ? "status-dot-up" : "status-dot-off"}`} aria-hidden />
-          NASDAQ · {open ? t("section.open") : t("section.closed")}
-        </span>
+        <Freshness ts={rows.length ? Date.now() : null} isOpen={open} error={!!error} label={`NASDAQ · ${open ? "Canlı" : "Kapalı"}`} />
+
       </div>
       {error ? (
-        <div className="panel-body">
-          <div className="ts-error">
-            <span>{error}</span>
-            <button type="button" className="retry-btn" onClick={load}>{t("common.retry")}</button>
-          </div>
+        <div className="panel-body no-pad">
+          <ErrorState message={error} onRetry={load} />
         </div>
       ) : (
         <div className="wl-grid panel-body no-pad">
@@ -110,13 +125,7 @@ export default function WinnersLosers() {
               </thead>
               <tbody>
                 {winners.length === 0
-                  ? Array.from({ length: 5 }).map((_, i) => (
-                      <tr key={i}>
-                        <td><span className="wl-rank"><span className="wl-rank-num">{i + 1}</span>···</span></td>
-                        <td>—</td>
-                        <td className="wl-pct">—</td>
-                      </tr>
-                    ))
+                  ? Array.from({ length: 5 }).map((_, i) => renderSkelRow(i))
                   : winners.map((r, i) => renderRow(r, i, "up"))}
               </tbody>
             </table>
@@ -136,13 +145,7 @@ export default function WinnersLosers() {
               </thead>
               <tbody>
                 {losers.length === 0
-                  ? Array.from({ length: 5 }).map((_, i) => (
-                      <tr key={i}>
-                        <td><span className="wl-rank"><span className="wl-rank-num">{i + 1}</span>···</span></td>
-                        <td>—</td>
-                        <td className="wl-pct">—</td>
-                      </tr>
-                    ))
+                  ? Array.from({ length: 5 }).map((_, i) => renderSkelRow(i))
                   : losers.map((r, i) => renderRow(r, i, "down"))}
               </tbody>
             </table>

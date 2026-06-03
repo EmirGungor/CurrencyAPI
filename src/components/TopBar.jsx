@@ -3,6 +3,7 @@ import { FaSearch, FaBell, FaSun, FaMoon } from "react-icons/fa";
 import { useI18n } from "../i18n";
 import { useTheme } from "../theme/ThemeProvider";
 import { useSearch } from "../lib/search";
+import DataHealth from "./DataHealth";
 
 function formatTime(d, lang) {
   const locale = lang === "tr" ? "tr-TR" : "en-US";
@@ -45,6 +46,7 @@ export default function TopBar() {
       </div>
 
       <div className="topbar-right">
+        <DataHealth />
         <div className="topbar-time" aria-live="polite">
           <div className="t-date">{formatDate(now, lang)}</div>
           <div className="t-clock">{formatTime(now, lang)}</div>

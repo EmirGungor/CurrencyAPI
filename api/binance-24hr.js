@@ -10,7 +10,10 @@ export default async function handler(req, res) {
   const param = encodeURIComponent(JSON.stringify(arr));
   const url = `https://api.binance.com/api/v3/ticker/24hr?symbols=${param}`;
   try {
-    const r = await fetch(url, { headers: { "User-Agent": UA, Accept: "application/json" } });
+    const r = await fetch(url, {
+      headers: { "User-Agent": UA, Accept: "application/json" },
+      signal: AbortSignal.timeout(8000),
+    });
     if (!r.ok) return res.status(r.status).json({ error: `upstream ${r.status}` });
     const body = await r.text();
     res.setHeader("Cache-Control", "s-maxage=20, stale-while-revalidate=120");

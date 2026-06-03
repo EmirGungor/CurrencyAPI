@@ -1,9 +1,11 @@
+import { useEffect, useState } from "react";
 import {
   FaChartLine,
   FaBitcoin,
   FaCoins,
   FaChartArea,
   FaWrench,
+  FaRegClock,
 } from "react-icons/fa";
 import { useI18n } from "../i18n";
 import QuickStats from "./QuickStats";
@@ -15,25 +17,62 @@ import Currency from "./Currency";
 import FundsPanel from "./FundsPanel";
 import FundDetail from "./FundDetail";
 import CryptoList from "./CryptoList";
+import { IpoTeaser, DividendsTeaser, ProBanner, PortfolioSummary, CommunityFeed } from "./DashboardPanels";
 import { useSelection } from "../lib/selection";
+
+function PageClock() {
+  const { locale } = useI18n();
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const loc = locale === "en" ? "en-US" : "tr-TR";
+  const dateStr = now.toLocaleDateString(loc, {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+  const timeStr = now.toLocaleTimeString(loc, {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+  return (
+    <div className="page-clock">
+      <FaRegClock className="page-clock-icon" />
+      <span className="page-clock-date">{dateStr}</span>
+      <span className="page-clock-sep">·</span>
+      <span className="page-clock-time">{timeStr}</span>
+    </div>
+  );
+}
 
 export function DashboardPage() {
   const { t } = useI18n();
   return (
     <>
-      <div className="page-head">
+      <div className="page-head page-head-row">
         <h1 className="page-title">{t("page.title")}</h1>
+        <PageClock />
       </div>
       <QuickStats />
+      <ProBanner />
       <div className="main-grid">
         <div className="main-grid-left">
           <BigChart />
           <WinnersLosers />
+          <div className="dash-teaser-row">
+            <IpoTeaser />
+            <DividendsTeaser />
+          </div>
         </div>
         <div className="main-grid-right">
-          <TopStocks />
+          <PortfolioSummary />
           <Currency />
           <GoldList />
+          <TopStocks />
+          <CommunityFeed />
         </div>
       </div>
     </>

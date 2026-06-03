@@ -12,6 +12,10 @@ import { isBistOpen, isUsMarketOpen } from "../lib/marketHours";
 import { useSearch } from "../lib/search";
 import { useSelection } from "../lib/selection";
 import { useRoute } from "../lib/router";
+import TickValue from "./TickValue";
+import Freshness from "./Freshness";
+import { EmptyState, ErrorState } from "./DataState";
+import { FaChartBar } from "react-icons/fa";
 
 const MARKETS = [
   { id: "bist", label: "BIST 30", flag: "🇹🇷" },
@@ -150,11 +154,13 @@ export default function TopStocks() {
     <section className="top-stocks" aria-label={labels.title}>
       <div className="ts-head">
         <div className="ts-title">
-          <span className={`ts-pulse ${open ? "" : "is-off"}`} aria-hidden="true" />
           <span>{labels.title}</span>
-          <span className="ts-status">
-            {open ? t("section.open") : t("section.closed")}
-          </span>
+          <Freshness
+            ts={Date.now()}
+            isOpen={open}
+            loading={isLoading}
+            error={!!err}
+          />
         </div>
         <div className="ts-tabs" role="tablist">
           {MARKETS.map((m) => (
@@ -175,22 +181,17 @@ export default function TopStocks() {
 
       <div className="ts-strip" role="tabpanel">
         {err ? (
-          <div className="ts-error">
-            <span>{err}</span>
-            <button type="button" className="retry-btn" onClick={() => load(active)}>
-              {t("common.retry")}
-            </button>
-          </div>
+          <ErrorState message="Veri alınamadı" detail={typeof err === "string" ? err : null} onRetry={() => load(active)} />
         ) : isLoading && rows.length === 0 ? (
           Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="ts-item is-skeleton">
-              <span className="ts-sym">···</span>
-              <span className="ts-price">···</span>
-              <span className="ts-pct">···</span>
+              <span className="ts-sym dx-shimmer" style={{ width: 36, height: 10, display: "inline-block", borderRadius: 3 }} />
+              <span className="ts-price dx-shimmer" style={{ width: 56, height: 12, display: "inline-block", borderRadius: 3 }} />
+              <span className="ts-pct dx-shimmer" style={{ width: 36, height: 10, display: "inline-block", borderRadius: 3 }} />
             </div>
           ))
         ) : rows.length === 0 ? (
-          <div className="ts-empty">{labels.lastClose}: —</div>
+          <EmptyState icon={<FaChartBar />} title="Hisse verisi yok" message={open ? "Veri kaynağı şu an erişilemiyor." : "Piyasa kapalı. Son kapanış verisi yükleniyor."} />
         ) : (
           rows.map((r) => {
             const up = (r.changePct ?? 0) >= 0;
@@ -204,8 +205,12 @@ export default function TopStocks() {
                 onClick={() => onPickStock(r)}
               >
                 <span className="ts-sym">{sym}</span>
-                <span className="ts-price">
-                  {currency}{formatPrice(r.close, locale)}
+                <span className="ts-price num">
+                  {r.close == null ? (
+                    <span style={{ color: "var(--muted)" }}>—</span>
+                  ) : (
+                    <TickValue value={r.close} prefix={currency} format={(v) => formatPrice(v, locale)} />
+                  )}
                 </span>
                 <span className={`ts-pct ${up ? "up" : "down"}`}>
                   {r.changePct == null ? "—" : `${up ? "+" : ""}${r.changePct.toFixed(2)}%`}

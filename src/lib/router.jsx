@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState, useCallback, useMemo } 
 const RouteContext = createContext({ route: "dashboard", setRoute: () => {} });
 
 const VALID = new Set([
+  // existing
   "dashboard",
   "portfolio",
   "terminal",
@@ -20,6 +21,39 @@ const VALID = new Set([
   "community",
   "news",
   "posts",
+  // account / monetization
+  "favorites",
+  "support",
+  "pro",
+  "revenue-program",
+  // markets extras
+  "foreign-stocks",
+  "ipo",
+  "dividends",
+  // canli-yayin sub
+  "live-archive",
+  "live-calendar",
+  // fonlar sub (12)
+  "funds-investment",
+  "funds-bes",
+  "funds-byf",
+  "funds-league",
+  "funds-glance",
+  "funds-companies",
+  "funds-compare",
+  "funds-sim",
+  "funds-smart",
+  "funds-reverse",
+  "funds-overlap",
+  "funds-rotation",
+  // meta
+  "contact",
+  "changelog",
+  "about",
+  "disclaimer",
+  "tos",
+  "kvkk",
+  "privacy",
 ]);
 
 function readHash() {

@@ -32,31 +32,47 @@ function fmtDate(d) {
 
 // İş Yatırım has CORS issues from browser, so we proxy through Vite/Vercel.
 // Wraps it in /api/bist-history?symbol=THYAO&days=N — we'll add this endpoint to vite.config.js + api/.
+import { withCache } from "./dataCache";
+
 export async function fetchBistStockHistory(symbol, range = "1m") {
   const days = RANGE_TO_DAYS[range] ?? 30;
-  const r = await fetch(`/api/bist-history?symbol=${encodeURIComponent(symbol)}&days=${days}`);
-  if (!r.ok) throw new Error(`bist-history ${r.status}`);
-  const data = await r.json();
-  return (data?.points || []).map((p) => ({ date: p.date, value: p.value }));
+  const key = `bist:hist:${symbol}:${range}`;
+  return withCache(
+    key,
+    async (signal) => {
+      const r = await fetch(`/api/bist-history?symbol=${encodeURIComponent(symbol)}&days=${days}`, { signal });
+      if (!r.ok) throw new Error(`bist-history ${r.status}`);
+      const data = await r.json();
+      return (data?.points || []).map((p) => ({ date: p.date, value: p.value }));
+    },
+    { feed: "bist", freshMs: 60_000 }
+  );
 }
 
-// US stock history via NASDAQ.com (works without auth, has CORS via proxy).
 export async function fetchUsStockHistory(symbol, range = "1m") {
   const days = RANGE_TO_NASDAQ_DAYS[range] ?? 35;
-  const r = await fetch(`/api/nasdaq?symbol=${encodeURIComponent(symbol)}&kind=history&days=${days}`);
-  if (!r.ok) throw new Error(`nasdaq-history ${r.status}`);
-  const data = await r.json();
-  const rows = data?.data?.tradesTable?.rows || [];
-  return rows
-    .map((row) => {
-      // Date format: "MM/DD/YYYY"
-      const [mm, dd, yyyy] = String(row.date || "").split("/");
-      const value = parseFloat(String(row.close || "").replace(/[$,]/g, ""));
-      return Number.isFinite(value) && yyyy
-        ? { date: `${yyyy}-${mm}-${dd}`, value }
-        : null;
-    })
-    .filter(Boolean)
-    // NASDAQ returns newest-first; chart wants oldest→newest
-    .reverse();
+  const key = `us:hist:${symbol}:${range}`;
+  return withCache(
+    key,
+    async (signal) => {
+      const r = await fetch(
+        `/api/nasdaq?symbol=${encodeURIComponent(symbol)}&kind=history&days=${days}`,
+        { signal }
+      );
+      if (!r.ok) throw new Error(`nasdaq-history ${r.status}`);
+      const data = await r.json();
+      const rows = data?.data?.tradesTable?.rows || [];
+      return rows
+        .map((row) => {
+          const [mm, dd, yyyy] = String(row.date || "").split("/");
+          const value = parseFloat(String(row.close || "").replace(/[$,]/g, ""));
+          return Number.isFinite(value) && yyyy
+            ? { date: `${yyyy}-${mm}-${dd}`, value }
+            : null;
+        })
+        .filter(Boolean)
+        .reverse();
+    },
+    { feed: "us", freshMs: 60_000 }
+  );
 }

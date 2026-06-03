@@ -1,10 +1,13 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useI18n } from "../i18n";
 import { useSmartPoll } from "../lib/useSmartPoll";
-import { isForexOpen, isCryptoOpen } from "../lib/marketHours";
+import { isForexOpen, isCryptoOpen, isBistOpen } from "../lib/marketHours";
 import { useSearch } from "../lib/search";
 import { useSelection } from "../lib/selection";
 import { useRoute } from "../lib/router";
+import { subscribeTicker } from "../lib/binanceWs";
+import AssetIcon from "./AssetIcon";
+import TickValue from "./TickValue";
 
 const TR_URL = "https://finans.truncgil.com/today.json";
 
@@ -39,6 +42,7 @@ export default function QuickStats() {
   const { setRoute } = useRoute();
   const [tr, setTr] = useState(null);
   const [crypto, setCrypto] = useState({});
+  const [bist, setBist] = useState({});
 
   const loadTr = useCallback(async () => {
     try {
@@ -46,6 +50,21 @@ export default function QuickStats() {
       if (!r.ok) return;
       const data = await r.json();
       setTr(data);
+    } catch {}
+  }, []);
+
+  const loadBist = useCallback(async () => {
+    try {
+      const r = await fetch("/api/yfinance?symbols=XU100.IS,XU030.IS");
+      if (!r.ok) return;
+      const data = await r.json();
+      const result = data?.quoteResponse?.result || [];
+      const map = {};
+      for (const q of result) {
+        if (q.symbol === "XU100.IS") map.xu100 = { value: q.regularMarketPrice, pct: q.regularMarketChangePercent };
+        if (q.symbol === "XU030.IS") map.xu030 = { value: q.regularMarketPrice, pct: q.regularMarketChangePercent };
+      }
+      setBist(map);
     } catch {}
   }, []);
 
@@ -69,6 +88,18 @@ export default function QuickStats() {
 
   useSmartPoll(loadTr, { isOpen: isForexOpen, openMs: 60_000, closedMs: 5 * 60_000 });
   useSmartPoll(loadCrypto, { isOpen: isCryptoOpen, openMs: 30_000 });
+  useSmartPoll(loadBist, { isOpen: isBistOpen, openMs: 30_000, closedMs: 5 * 60_000 });
+
+  // Live WebSocket ticks for BTC and ETH — overrides REST values per second.
+  useEffect(() => {
+    const unBtc = subscribeTicker("BTCUSDT", (t) => {
+      setCrypto((prev) => ({ ...prev, bitcoin: { usd: t.close, usd_24h_change: t.changePct } }));
+    });
+    const unEth = subscribeTicker("ETHUSDT", (t) => {
+      setCrypto((prev) => ({ ...prev, ethereum: { usd: t.close, usd_24h_change: t.changePct } }));
+    });
+    return () => { unBtc(); unEth(); };
+  }, []);
 
   const locale = lang === "tr" ? "tr-TR" : "en-US";
   const labels = {
@@ -96,13 +127,34 @@ export default function QuickStats() {
 
   const items = [
     {
+      key: "xu100",
+      label: lang === "tr" ? "BIST 100" : "BIST 100",
+      value: bist?.xu100?.value,
+      pct: bist?.xu100?.pct,
+      decimals: 2,
+      prefix: "",
+      icon: { kind: "metal", symbol: "BIST" },
+      primary: true,
+      target: { route: "indices", selection: { kind: "stock", market: "bist", symbol: "XU100.IS", label: "BIST 100" } },
+    },
+    {
+      key: "xu030",
+      label: lang === "tr" ? "BIST 30" : "BIST 30",
+      value: bist?.xu030?.value,
+      pct: bist?.xu030?.pct,
+      decimals: 2,
+      prefix: "",
+      icon: { kind: "metal", symbol: "BIST" },
+      target: { route: "indices", selection: { kind: "stock", market: "bist", symbol: "XU030.IS", label: "BIST 30" } },
+    },
+    {
       key: "usd",
       label: labels.usd,
       value: parseTr(tr?.USD?.["Satış"]),
       pct: parsePct(tr?.USD?.["Değişim"]),
       decimals: 4,
       prefix: "₺",
-      primary: true,
+      icon: { kind: "forex", from: "USD" },
       target: { route: "gold-fx", selection: { kind: "forex", from: "USD", to: "TRY", label: "USD/TRY" } },
     },
     {
@@ -112,6 +164,7 @@ export default function QuickStats() {
       pct: parsePct(tr?.EUR?.["Değişim"]),
       decimals: 4,
       prefix: "₺",
+      icon: { kind: "forex", from: "EUR" },
       target: { route: "gold-fx", selection: { kind: "forex", from: "EUR", to: "TRY", label: "EUR/TRY" } },
     },
     {
@@ -121,6 +174,7 @@ export default function QuickStats() {
       pct: parsePct(tr?.GBP?.["Değişim"]),
       decimals: 4,
       prefix: "₺",
+      icon: { kind: "forex", from: "GBP" },
       target: { route: "gold-fx", selection: { kind: "forex", from: "GBP", to: "TRY", label: "GBP/TRY" } },
     },
     {
@@ -130,6 +184,7 @@ export default function QuickStats() {
       pct: parsePct(tr?.["gram-altin"]?.["Değişim"]),
       decimals: 2,
       prefix: "₺",
+      icon: { kind: "metal", symbol: "GOLD" },
       target: {
         route: "gold-fx",
         selection: { kind: "metal", unit: "gram", vs: "TRY", label: lang === "tr" ? "Gram Altın (₺)" : "Gold (gr, ₺)" },
@@ -142,6 +197,7 @@ export default function QuickStats() {
       pct: parsePct(tr?.["ons"]?.["Değişim"]),
       decimals: 2,
       prefix: "$",
+      icon: { kind: "metal", symbol: "GOLD" },
       target: {
         route: "gold-fx",
         selection: { kind: "metal", unit: "oz", vs: "USD", label: "XAU/USD" },
@@ -154,6 +210,7 @@ export default function QuickStats() {
       pct: parsePct(tr?.gumus?.["Değişim"]),
       decimals: 2,
       prefix: "₺",
+      icon: { kind: "metal", symbol: "SILVER" },
       // Silver: no reliable free history source; falls back to gold per-gram TRY chart as nearest correlated metal.
       target: {
         route: "gold-fx",
@@ -167,6 +224,7 @@ export default function QuickStats() {
       pct: crypto?.bitcoin?.usd_24h_change,
       decimals: 0,
       prefix: "$",
+      icon: { kind: "crypto", symbol: "BTC" },
       target: { route: "crypto", selection: { kind: "crypto", coinId: "bitcoin", symbol: "BTC", vs: "USD", label: "BTC/USD" } },
     },
     {
@@ -176,6 +234,7 @@ export default function QuickStats() {
       pct: crypto?.ethereum?.usd_24h_change,
       decimals: 2,
       prefix: "$",
+      icon: { kind: "crypto", symbol: "ETH" },
       target: { route: "crypto", selection: { kind: "crypto", coinId: "ethereum", symbol: "ETH", vs: "USD", label: "ETH/USD" } },
     },
   ];
@@ -205,13 +264,21 @@ export default function QuickStats() {
               onClick={() => onClickItem(it)}
               title={`${it.label} →`}
             >
-              <div className="qs-row">
+              <div className="qs-row" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                {it.icon && (
+                  <AssetIcon kind={it.icon.kind} symbol={it.icon.symbol} from={it.icon.from} size={16} />
+                )}
                 <span className="qs-label">{it.label}</span>
               </div>
               <div className="qs-value-row">
-                <span className="qs-value">
-                  {it.prefix || ""}
-                  {fmt(it.value, it.decimals, locale)}
+                <span className="qs-value num">
+                  {it.value == null ? "—" : (
+                    <TickValue
+                      value={it.value}
+                      prefix={it.prefix || ""}
+                      format={(v) => v.toLocaleString(locale, { minimumFractionDigits: it.decimals, maximumFractionDigits: it.decimals })}
+                    />
+                  )}
                 </span>
                 <span className={`qs-pct ${up ? "up" : "down"}`}>
                   {it.pct == null ? "—" : `${up ? "+" : ""}${it.pct.toFixed(2)}%`}

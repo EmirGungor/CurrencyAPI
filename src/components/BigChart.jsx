@@ -7,6 +7,11 @@ import { fetchGoldHistory } from "../lib/metalHistory";
 import { fetchBistStockHistory, fetchUsStockHistory } from "../lib/stockHistory";
 import { fetchFundHistory } from "../lib/funds";
 import { useSelection } from "../lib/selection";
+import { coinIdToBinance } from "../lib/cryptoHistory";
+import { subscribeTicker } from "../lib/binanceWs";
+import TickValue from "./TickValue";
+import Freshness from "./Freshness";
+import AssetIcon from "./AssetIcon";
 
 const RANGES = ["1d", "1w", "1m", "3m", "1y"];
 
@@ -69,13 +74,37 @@ export default function BigChart() {
     load(range);
   }, [range, load]);
 
+  // Live WebSocket tick (Binance) for crypto + PAXG gold — saniyelik fiyat
+  const [liveTick, setLiveTick] = useState(null);
+  useEffect(() => {
+    setLiveTick(null);
+    let wsSymbol = null;
+    if (selection.kind === "crypto") {
+      wsSymbol = coinIdToBinance(selection.coinId);
+    } else if (selection.kind === "metal") {
+      wsSymbol = (selection.vs || "usd").toUpperCase() === "TRY" ? "PAXGTRY" : "PAXGUSDT";
+    }
+    if (!wsSymbol) return;
+    return subscribeTicker(wsSymbol, setLiveTick);
+  }, [selection.kind, selection.coinId, selection.vs]);
+
   const stats = useMemo(() => {
     if (points.length < 1) return { last: null, prev: null, pct: null };
-    const last = points[points.length - 1].value;
+    const histLast = points[points.length - 1].value;
     const first = points[0].value;
+    let last = histLast;
+    // Overlay live tick if available
+    if (liveTick && Number.isFinite(liveTick.close)) {
+      if (selection.kind === "crypto") {
+        last = liveTick.close;
+      } else if (selection.kind === "metal") {
+        const div = selection.unit === "gram" ? 31.1035 : 1;
+        last = liveTick.close / div;
+      }
+    }
     const pct = first ? ((last - first) / first) * 100 : null;
     return { last, prev: first, pct };
-  }, [points]);
+  }, [points, liveTick, selection.kind, selection.unit]);
 
   const path = useMemo(() => {
     if (points.length < 2) return null;
@@ -155,14 +184,40 @@ export default function BigChart() {
   return (
     <div className="panel">
       <div className="bc-head">
-        <div className="bc-meta">
+        <div className="bc-meta" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <AssetIcon
+            kind={selection.kind}
+            symbol={
+              selection.kind === "crypto" ? selection.symbol :
+              selection.kind === "stock" ? selection.symbol :
+              selection.kind === "metal" ? "GOLD" : null
+            }
+            from={selection.from}
+            size={28}
+          />
           <span className="bc-symbol">{symbolLabel}</span>
-          <span className="bc-price">{pricePrefix}{fmt(stats.last)}</span>
+          <span className="bc-price num">
+            {stats.last == null ? (
+              <span style={{ color: "var(--muted)" }}>—</span>
+            ) : (
+              <TickValue
+                value={stats.last}
+                prefix={pricePrefix}
+                format={(v) => v.toLocaleString(locale, { minimumFractionDigits: priceDecimals, maximumFractionDigits: priceDecimals })}
+              />
+            )}
+          </span>
           {stats.pct != null && (
             <span className={`bc-change ${up ? "up" : "down"}`}>
               {up ? "▲" : "▼"} {Math.abs(stats.pct).toFixed(2)}%
             </span>
           )}
+          <Freshness
+            ts={liveTick ? liveTick.ts : (points.length ? Date.now() : null)}
+            isOpen={selection.kind === "crypto" || selection.kind === "metal"}
+            loading={loading}
+            error={!!error}
+          />
         </div>
         <div className="bc-tabs" role="tablist" aria-label="Range">
           {RANGES.map((r) => (

@@ -38,6 +38,37 @@
   --sidebar-w: 240px;
   --sidebar-w-collapsed: 64px;
   --maxw: 1600px;
+
+  /* Spacing scale (4px base, mathematical) */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-7: 32px;
+  --sp-8: 40px;
+
+  /* Type scale */
+  --fs-xs: 11px;
+  --fs-sm: 12px;
+  --fs-base: 13px;
+  --fs-md: 14px;
+  --fs-lg: 16px;
+  --fs-xl: 18px;
+  --fs-2xl: 22px;
+  --fs-3xl: 28px;
+
+  /* Radius scale */
+  --r-sm: 6px;
+  --r-md: 8px;
+  --r-lg: 12px;
+  --r-xl: 16px;
+  --r-pill: 999px;
+
+  /* Panel surfaces */
+  --panel: #14191f;
+  --panel-2: rgba(255, 255, 255, 0.04);
 }
 
 :root[data-theme="light"] {
@@ -73,4 +104,8 @@
   --bg-glow-1: rgba(124, 92, 255, 0.18);
   --bg-glow-2: rgba(74, 125, 255, 0.16);
   --bg-glow-3: rgba(38, 208, 124, 0.12);
+
+  /* Panel surfaces (light) */
+  --panel: #ffffff;
+  --panel-2: rgba(15, 23, 42, 0.04);
 }

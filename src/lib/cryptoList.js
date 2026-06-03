@@ -42,16 +42,25 @@ export const CRYPTO_GROUPS = {
   ],
 };
 
+import { withCache } from "./dataCache";
+
 export async function fetchCryptoQuotes(symbols) {
   const list = symbols.join(",");
-  const r = await fetch(`/api/binance-24hr?symbols=${encodeURIComponent(list)}`);
-  if (!r.ok) throw new Error(`binance ${r.status}`);
-  const data = await r.json();
-  return (Array.isArray(data) ? data : []).map((t) => ({
-    symbol: t.symbol,
-    close: parseFloat(t.lastPrice),
-    change: parseFloat(t.priceChange),
-    changePct: parseFloat(t.priceChangePercent),
-    volume: parseFloat(t.quoteVolume),
-  }));
+  const key = `crypto:quotes:${list}`;
+  return withCache(
+    key,
+    async (signal) => {
+      const r = await fetch(`/api/binance-24hr?symbols=${encodeURIComponent(list)}`, { signal });
+      if (!r.ok) throw new Error(`binance ${r.status}`);
+      const data = await r.json();
+      return (Array.isArray(data) ? data : []).map((t) => ({
+        symbol: t.symbol,
+        close: parseFloat(t.lastPrice),
+        change: parseFloat(t.priceChange),
+        changePct: parseFloat(t.priceChangePercent),
+        volume: parseFloat(t.quoteVolume),
+      }));
+    },
+    { feed: "crypto", freshMs: 15_000 }
+  );
 }

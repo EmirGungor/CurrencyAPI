@@ -5,6 +5,9 @@ import { useSmartPoll } from "../lib/useSmartPoll";
 import { isForexOpen } from "../lib/marketHours";
 import { useSelection } from "../lib/selection";
 import { useRoute } from "../lib/router";
+import TickValue from "./TickValue";
+import Freshness from "./Freshness";
+import { Shimmer } from "./DataState";
 
 const TR_URL = "https://finans.truncgil.com/today.json";
 
@@ -39,14 +42,20 @@ export default function GoldList() {
   const { setSelection } = useSelection();
   const { setRoute } = useRoute();
   const [data, setData] = useState({});
+  const [ts, setTs] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
+    setLoading(true);
     try {
       const r = await fetch(TR_URL);
       if (!r.ok) return;
       const json = await r.json();
       setData(json);
-    } catch {}
+      setTs(Date.now());
+    } catch {} finally {
+      setLoading(false);
+    }
   }, []);
 
   useSmartPoll(load, { isOpen: isForexOpen, openMs: 60_000, closedMs: 5 * 60_000 });
@@ -54,6 +63,7 @@ export default function GoldList() {
   const locale = lang === "tr" ? "tr-TR" : "en-US";
   const fmt = (v, decimals = 2) =>
     v == null ? "—" : v.toLocaleString(locale, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+  const hasAny = Object.keys(data).length > 0;
 
   return (
     <div className="panel">
@@ -62,6 +72,7 @@ export default function GoldList() {
           <FaCoins />
           {t("gold.title")}
         </span>
+        <Freshness ts={ts} isOpen={isForexOpen()} loading={loading} error={!loading && !hasAny} />
       </div>
       <div className="panel-body no-pad">
         <ul className="gold-list">
@@ -87,11 +98,19 @@ export default function GoldList() {
                 <button type="button" className="gold-item is-clickable" onClick={onClick} title={name}>
                   <span className="gold-dot" aria-hidden />
                   <span className="gold-name">{name}</span>
-                  <span className="gold-price">
-                    {prefix}{fmt(v, 2)}
+                  <span className="gold-price num">
+                    {v == null ? (
+                      loading ? <Shimmer width={70} height={11} /> : <span style={{ color: "var(--muted)" }}>—</span>
+                    ) : (
+                      <TickValue value={v} prefix={prefix} format={(x) => fmt(x, 2)} />
+                    )}
                   </span>
                   <span className={`gold-pct ${up ? "up" : "down"}`}>
-                    {pct == null ? "—" : `${up ? "▲" : "▼"} ${Math.abs(pct).toFixed(2)}%`}
+                    {pct == null ? (
+                      loading ? <Shimmer width={36} height={10} /> : "—"
+                    ) : (
+                      `${up ? "▲" : "▼"} ${Math.abs(pct).toFixed(2)}%`
+                    )}
                   </span>
                 </button>
               </li>

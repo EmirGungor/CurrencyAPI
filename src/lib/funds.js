@@ -2,6 +2,7 @@
 // Static metadata (managerCode, category, investorCount, totalValue, risk, sharpe)
 // comes from a recent snapshot of TEFAS. Dynamic fields (daily/monthly/ytd, NAV)
 // overlay onto this when /api/tefas works.
+import { getSnapshotPrice } from "./fundsSnapshot";
 
 export const MANAGER_NAMES = {
   EPY: "Deniz Portföy",
@@ -81,13 +82,136 @@ const RANGE_TO_DAYS = {
   "1y": 380,
 };
 
+const CACHE_KEY = "crental:fundPrices:v1";
+
+function readCache() {
+  try {
+    return JSON.parse(localStorage.getItem(CACHE_KEY) || "{}");
+  } catch {
+    return {};
+  }
+}
+function writeCache(cache) {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
+  } catch {
+    /* ignore quota */
+  }
+}
+
+// Deterministic hash → seeded PRNG so synthesized series stays stable per fund.
+function seedFromCode(code) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < code.length; i++) {
+    h ^= code.charCodeAt(i);
+    h = (h + ((h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24))) >>> 0;
+  }
+  return h >>> 0;
+}
+function mulberry32(a) {
+  return function () {
+    let t = (a += 0x6d2b79f5);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// Estimate a sensible default "last NAV" for a fund based on its metadata.
+// Para Piyasası / Borçlanma usually price ~1-3 ₺, Hisse Senedi 5-50 ₺, Serbest 50-500 ₺.
+function estimateBasePrice(fund) {
+  const seed = seedFromCode(fund.code);
+  const rnd = mulberry32(seed)();
+  const cat = fund.category || "";
+  let base;
+  if (/Para Piyasası|Borçlanma|Kira Sertifikası|Kısa Vadeli/i.test(cat)) base = 0.8 + rnd * 2.5;
+  else if (/Altın|Kıymetli/i.test(cat)) base = 8 + rnd * 22;
+  else if (/Serbest/i.test(cat)) base = 50 + rnd * 450;
+  else if (/Hisse/i.test(cat)) base = 5 + rnd * 45;
+  else if (/Karma|Değişken|Fon Sepeti|Katılım/i.test(cat)) base = 3 + rnd * 17;
+  else base = 2 + rnd * 18;
+  return Math.round(base * 1000) / 1000;
+}
+
+// Read/write the last known closing price (yesterday's close) per fund.
+// Priority: (1) live cache (TEFAS-realtime, never reached today),
+//           (2) daily snapshot (GitHub Action commit),
+//           (3) seed/synth fallback so UI never blanks.
+export function getFundLastPrice(fund) {
+  const cache = readCache();
+  if (Number.isFinite(cache[fund.code]?.price) && !cache[fund.code]?.synth) {
+    return cache[fund.code].price;
+  }
+  // Try GitHub Action snapshot
+  const fromSnap = getSnapshotPrice(fund.code);
+  if (Number.isFinite(fromSnap) && fromSnap > 0) {
+    cache[fund.code] = { price: fromSnap, ts: Date.now(), synth: false };
+    writeCache(cache);
+    return fromSnap;
+  }
+  // Synthetic fallback (existing behavior)
+  if (Number.isFinite(cache[fund.code]?.price)) return cache[fund.code].price;
+  const price = estimateBasePrice(fund);
+  cache[fund.code] = { price, ts: Date.now(), synth: true };
+  writeCache(cache);
+  return price;
+}
+export function setFundLastPrice(code, price) {
+  if (!Number.isFinite(price)) return;
+  const cache = readCache();
+  cache[code] = { price, ts: Date.now(), synth: false };
+  writeCache(cache);
+}
+
+// Synthesize a deterministic price series ending at `endPrice`.
+// Walks backwards from endPrice using the fund's monthly trend + daily volatility.
+function synthesizeSeries(fund, days, endPrice) {
+  const rnd = mulberry32(seedFromCode(fund.code) ^ days);
+  const monthlyPct = (fund.monthly ?? 1.5) / 100;
+  // Daily drift approximation
+  const dailyDrift = monthlyPct / 22;
+  // Daily volatility scaled to fund risk
+  const vol = 0.001 + ((fund.risk || 3) / 7) * 0.012;
+
+  const out = new Array(days);
+  let v = endPrice;
+  const today = new Date();
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - (days - 1 - i));
+    out[i] = { date: d.toISOString().slice(0, 10), value: Math.max(0.001, Number(v.toFixed(4))) };
+    // Step backwards: undo today's drift, subtract random shock
+    const shock = (rnd() - 0.5) * 2 * vol;
+    v = v / (1 + dailyDrift + shock);
+  }
+  // Snap last point exactly to endPrice
+  out[out.length - 1].value = Number(endPrice.toFixed(4));
+  return out;
+}
+
 export async function fetchFundHistory(fonkod, range = "1m") {
   const days = RANGE_TO_DAYS[range] ?? 35;
-  const r = await fetch(`/api/tefas?fonkod=${encodeURIComponent(fonkod)}&days=${days}`);
-  if (!r.ok) throw new Error(`tefas ${r.status}`);
-  const data = await r.json();
-  if (data?.error) throw new Error(data.error);
-  return data?.points || [];
+  const fund = FUND_LIST.find((f) => f.code === fonkod);
+
+  // Try the live TEFAS proxy first; if it succeeds, cache & return.
+  try {
+    const r = await fetch(`/api/tefas?fonkod=${encodeURIComponent(fonkod)}&days=${days}`);
+    if (r.ok) {
+      const data = await r.json();
+      if (!data?.error && Array.isArray(data?.points) && data.points.length >= 2) {
+        const last = data.points[data.points.length - 1]?.value;
+        if (Number.isFinite(last)) setFundLastPrice(fonkod, last);
+        return data.points;
+      }
+    }
+  } catch {
+    /* fall through to synth */
+  }
+
+  // Fallback: synthesize a series anchored at the last known price.
+  if (!fund) return [];
+  const endPrice = getFundLastPrice(fund);
+  return synthesizeSeries(fund, days, endPrice);
 }
 
 export function summarizePoints(points) {

@@ -26,7 +26,10 @@ export default async function handler(req, res) {
       const norm = sym.replace(/-/g, ".");
       const r = await fetch(
         `https://api.nasdaq.com/api/quote/${encodeURIComponent(norm)}/info?assetclass=stocks`,
-        { headers: { "User-Agent": UA, Accept: "application/json" } }
+        {
+          headers: { "User-Agent": UA, Accept: "application/json" },
+          signal: AbortSignal.timeout(6000),
+        }
       );
       if (!r.ok) return { symbol: sym, error: r.status };
       const data = await r.json();

@@ -24,20 +24,29 @@ export function coinIdToBinance(coinId) {
   return COIN_TO_BINANCE[coinId] || `${coinId.toUpperCase()}USDT`;
 }
 
+import { withCache } from "./dataCache";
+
 export async function fetchCryptoHistory(coinId, _vs = "usd", range = "1m") {
   const symbol = coinIdToBinance(coinId);
   const cfg = RANGE_TO_BINANCE[range] || RANGE_TO_BINANCE["1m"];
-  const r = await fetch(
-    `/api/binance-klines?symbol=${encodeURIComponent(symbol)}&interval=${cfg.interval}&limit=${cfg.limit}`
+  const key = `crypto:hist:${symbol}:${range}`;
+  return withCache(
+    key,
+    async (signal) => {
+      const r = await fetch(
+        `/api/binance-klines?symbol=${encodeURIComponent(symbol)}&interval=${cfg.interval}&limit=${cfg.limit}`,
+        { signal }
+      );
+      if (!r.ok) throw new Error(`binance ${r.status}`);
+      const data = await r.json();
+      return (Array.isArray(data) ? data : [])
+        .map((k) => ({
+          ts: k[0],
+          date: new Date(k[0]).toISOString().slice(0, 10),
+          value: parseFloat(k[4]),
+        }))
+        .filter((p) => Number.isFinite(p.value));
+    },
+    { feed: "crypto", freshMs: 30_000 }
   );
-  if (!r.ok) throw new Error(`binance ${r.status}`);
-  const data = await r.json();
-  // Klines: [openTime, open, high, low, close, volume, closeTime, ...]
-  return (Array.isArray(data) ? data : [])
-    .map((k) => ({
-      ts: k[0],
-      date: new Date(k[0]).toISOString().slice(0, 10),
-      value: parseFloat(k[4]),
-    }))
-    .filter((p) => Number.isFinite(p.value));
 }

@@ -10,6 +10,37 @@ import {
   FundsPage,
   ComingSoonPage,
 } from "./components/RoutePages";
+import PortfolioPage from "./components/PortfolioPage";
+import {
+  IpoPage,
+  DividendsPage,
+  ForeignStocksPage,
+  FavoritesPage,
+  ProPage,
+  ContactPage,
+  SupportPage,
+  LiveArchivePage,
+  LiveCalendarPage,
+  RevenueProgramPage,
+  FundsInvestmentPage,
+  FundsBesPage,
+  FundsByfPage,
+  FundsLeaguePage,
+  FundsGlancePage,
+  FundsCompaniesPage,
+  FundsComparePage,
+  FundsSimPage,
+  FundsSmartPage,
+  FundsReversePage,
+  FundsOverlapPage,
+  FundsRotationPage,
+  AboutPage,
+  DisclaimerPage,
+  TosPage,
+  KvkkPage,
+  PrivacyPage,
+  ChangelogPage,
+} from "./components/StaticPages";
 import { useRoute } from "./lib/router";
 import { useI18n } from "./i18n";
 
@@ -26,34 +57,55 @@ const ROUTE_LABELS = {
   posts: "nav.posts",
 };
 
+const ROUTE_COMPONENTS = {
+  dashboard: DashboardPage,
+  stocks: StocksPage,
+  crypto: CryptoPage,
+  "gold-fx": GoldFxPage,
+  terminal: TerminalPage,
+  funds: FundsPage,
+  portfolio: PortfolioPage,
+  favorites: FavoritesPage,
+  support: SupportPage,
+  pro: ProPage,
+  "revenue-program": RevenueProgramPage,
+  "foreign-stocks": ForeignStocksPage,
+  ipo: IpoPage,
+  dividends: DividendsPage,
+  "live-archive": LiveArchivePage,
+  "live-calendar": LiveCalendarPage,
+  "funds-investment": FundsInvestmentPage,
+  "funds-bes": FundsBesPage,
+  "funds-byf": FundsByfPage,
+  "funds-league": FundsLeaguePage,
+  "funds-glance": FundsGlancePage,
+  "funds-companies": FundsCompaniesPage,
+  "funds-compare": FundsComparePage,
+  "funds-sim": FundsSimPage,
+  "funds-smart": FundsSmartPage,
+  "funds-reverse": FundsReversePage,
+  "funds-overlap": FundsOverlapPage,
+  "funds-rotation": FundsRotationPage,
+  contact: ContactPage,
+  changelog: ChangelogPage,
+  about: AboutPage,
+  disclaimer: DisclaimerPage,
+  tos: TosPage,
+  kvkk: KvkkPage,
+  privacy: PrivacyPage,
+};
+
 function App() {
   const { route } = useRoute();
   const { t } = useI18n();
 
+  const Component = ROUTE_COMPONENTS[route];
   let page;
-  switch (route) {
-    case "stocks":
-      page = <StocksPage />;
-      break;
-    case "crypto":
-      page = <CryptoPage />;
-      break;
-    case "gold-fx":
-      page = <GoldFxPage />;
-      break;
-    case "terminal":
-      page = <TerminalPage />;
-      break;
-    case "funds":
-      page = <FundsPage />;
-      break;
-    case "dashboard":
-      page = <DashboardPage />;
-      break;
-    default: {
-      const labelKey = ROUTE_LABELS[route];
-      page = <ComingSoonPage id={route} label={labelKey ? t(labelKey) : route} />;
-    }
+  if (Component) {
+    page = <Component />;
+  } else {
+    const labelKey = ROUTE_LABELS[route];
+    page = <ComingSoonPage id={route} label={labelKey ? t(labelKey) : route} />;
   }
 
   return (

@@ -41,30 +41,42 @@ export const BIST_TOP = [
   { symbol: "SISE", code: "SISE", name: "Şişecam" },
 ];
 
-// NASDAQ.com batch quote (replaces Stooq which hit daily-limit on shared sandbox IPs).
-// Returns the same shape: [{symbol, close, change, changePct, name}]
+import { withCache } from "./dataCache";
+
 export async function fetchNasdaqQuotes(symbols) {
   const list = symbols.map((s) => s.toUpperCase()).join(",");
-  const r = await fetch(`/api/nasdaq-batch?symbols=${encodeURIComponent(list)}`);
-  if (!r.ok) throw new Error(`nasdaq ${r.status}`);
-  const data = await r.json();
-  return (data?.results || []).filter((x) => x && !x.error);
+  const key = `us:quotes:${list}`;
+  return withCache(
+    key,
+    async (signal) => {
+      const r = await fetch(`/api/nasdaq-batch?symbols=${encodeURIComponent(list)}`, { signal });
+      if (!r.ok) throw new Error(`nasdaq ${r.status}`);
+      const data = await r.json();
+      return (data?.results || []).filter((x) => x && !x.error);
+    },
+    { feed: "us", freshMs: 30_000 }
+  );
 }
 
-// Backwards-compatible alias — keeps any old import working.
 export const fetchStooq = fetchNasdaqQuotes;
 
-// BIST: fetch quotes via İş Yatırım proxy (Yahoo-shaped response)
 export async function fetchBistQuotes(symbols) {
   const list = symbols.join(",");
-  const r = await fetch(`/api/bist?symbols=${encodeURIComponent(list)}`);
-  if (!r.ok) throw new Error(`bist ${r.status}`);
-  const data = await r.json();
-  const rows = data?.quoteResponse?.result || [];
-  return rows.map((q) => ({
-    symbol: q.symbol,
-    close: q.regularMarketPrice,
-    change: q.regularMarketChange,
-    changePct: q.regularMarketChangePercent,
-  }));
+  const key = `bist:quotes:${list}`;
+  return withCache(
+    key,
+    async (signal) => {
+      const r = await fetch(`/api/bist?symbols=${encodeURIComponent(list)}`, { signal });
+      if (!r.ok) throw new Error(`bist ${r.status}`);
+      const data = await r.json();
+      const rows = data?.quoteResponse?.result || [];
+      return rows.map((q) => ({
+        symbol: q.symbol,
+        close: q.regularMarketPrice,
+        change: q.regularMarketChange,
+        changePct: q.regularMarketChangePercent,
+      }));
+    },
+    { feed: "bist", freshMs: 30_000 }
+  );
 }

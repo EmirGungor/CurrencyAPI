@@ -17,21 +17,31 @@ const TROY_OZ_TO_GRAM = 31.1035;
  * @param {string} opts.vs - "USD" or "TRY"
  * @param {string} opts.range
  */
+import { withCache } from "./dataCache";
+
 export async function fetchGoldHistory({ unit = "oz", vs = "usd", range = "1m" }) {
   const cfg = RANGE_TO_BINANCE[range] || RANGE_TO_BINANCE["1m"];
   const quote = String(vs).toUpperCase();
   const symbol = quote === "TRY" ? "PAXGTRY" : "PAXGUSDT";
-  const r = await fetch(
-    `/api/binance-klines?symbol=${symbol}&interval=${cfg.interval}&limit=${cfg.limit}`
-  );
-  if (!r.ok) throw new Error(`binance ${r.status}`);
-  const data = await r.json();
   const div = unit === "gram" ? TROY_OZ_TO_GRAM : 1;
-  return (Array.isArray(data) ? data : [])
-    .map((k) => ({
-      ts: k[0],
-      date: new Date(k[0]).toISOString().slice(0, 10),
-      value: parseFloat(k[4]) / div,
-    }))
-    .filter((p) => Number.isFinite(p.value));
+  const key = `metal:gold:${symbol}:${unit}:${range}`;
+  return withCache(
+    key,
+    async (signal) => {
+      const r = await fetch(
+        `/api/binance-klines?symbol=${symbol}&interval=${cfg.interval}&limit=${cfg.limit}`,
+        { signal }
+      );
+      if (!r.ok) throw new Error(`binance ${r.status}`);
+      const data = await r.json();
+      return (Array.isArray(data) ? data : [])
+        .map((k) => ({
+          ts: k[0],
+          date: new Date(k[0]).toISOString().slice(0, 10),
+          value: parseFloat(k[4]) / div,
+        }))
+        .filter((p) => Number.isFinite(p.value));
+    },
+    { feed: "metal", freshMs: 30_000 }
+  );
 }

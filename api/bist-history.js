@@ -16,7 +16,10 @@ export default async function handler(req, res) {
 
   const url = `https://www.isyatirim.com.tr/_layouts/15/IsYatirim.Website/Common/Data.aspx/HisseTekil?hisse=${encodeURIComponent(symbol)}&startdate=${fmt(past)}&enddate=${fmt(today)}`;
   try {
-    const r = await fetch(url, { headers: { "User-Agent": UA, Accept: "application/json" } });
+    const r = await fetch(url, {
+      headers: { "User-Agent": UA, Accept: "application/json" },
+      signal: AbortSignal.timeout(8000),
+    });
     if (!r.ok) return res.status(r.status).json({ error: `upstream ${r.status}` });
     const data = await r.json();
     const rows = data?.value || [];

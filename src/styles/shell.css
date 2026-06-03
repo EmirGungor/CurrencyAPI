@@ -126,7 +126,6 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  max-width: var(--maxw);
   width: 100%;
 }
 .page-head {
@@ -142,8 +141,96 @@
   font-weight: 800;
   letter-spacing: -0.2px;
 }
+.page-clock {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--panel-2, rgba(255, 255, 255, 0.04));
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+  font-size: 13px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.page-clock-icon {
+  color: var(--primary);
+  font-size: 13px;
+}
+.page-clock-date {
+  text-transform: capitalize;
+  color: var(--text);
+  font-weight: 600;
+}
+.page-clock-sep {
+  opacity: 0.5;
+}
+.page-clock-time {
+  color: var(--text);
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+.dash-teaser-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+@media (min-width: 720px) {
+  .dash-teaser-row {
+    grid-template-columns: 1fr 1fr;
+  }
+}
 
-/* 2-col main grid */
+/* Portfolio page grid */
+.portfolio-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  align-items: start;
+}
+@media (min-width: 1024px) {
+  .portfolio-grid {
+    grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+  }
+}
+@media (min-width: 1400px) {
+  .portfolio-grid {
+    grid-template-columns: minmax(320px, 380px) minmax(0, 1fr);
+  }
+}
+.portfolio-rail { min-width: 0; }
+.portfolio-main {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+.portfolio-cards {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  align-items: start;
+}
+@media (min-width: 720px) {
+  .portfolio-cards { grid-template-columns: 1fr 1fr; }
+}
+@media (min-width: 1280px) {
+  .portfolio-cards { grid-template-columns: 1fr 1fr 1fr; }
+}
+
+/* Portfolio detail grid */
+.portfolio-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+@media (min-width: 1024px) {
+  .portfolio-detail-grid {
+    grid-template-columns: minmax(300px, 380px) minmax(0, 1fr);
+  }
+}
+
+/* 2-col main grid — fluid: right column scales with viewport */
 .main-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -151,7 +238,12 @@
 }
 @media (min-width: 1100px) {
   .main-grid {
-    grid-template-columns: minmax(0, 1fr) 360px;
+    grid-template-columns: minmax(0, 2fr) minmax(340px, 1fr);
+  }
+}
+@media (min-width: 1600px) {
+  .main-grid {
+    grid-template-columns: minmax(0, 2.4fr) minmax(380px, 1fr);
   }
 }
 .main-grid-left {

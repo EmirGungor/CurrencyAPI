@@ -12,6 +12,7 @@ import { useSelection } from "../lib/selection";
 import { useRoute } from "../lib/router";
 import { useSearch } from "../lib/search";
 import { FUND_LIST, MANAGER_NAMES, fetchFundHistory, summarizePoints } from "../lib/funds";
+import SnapshotBadge from "./SnapshotBadge";
 
 const PAGE_SIZE = 50;
 
@@ -197,8 +198,8 @@ export default function FundsPanel() {
       {/* Big table */}
       <div className="fp-table-wrap">
         {tefasReachable === false && (
-          <div className="fp-snapshot-note">
-            ⓘ {t("fp.snapshotNote")}
+          <div style={{ padding: "0 16px 12px" }}>
+            <SnapshotBadge snapshotDate="11 May 2026" />
           </div>
         )}
         <div className="fp-table-scroll">
