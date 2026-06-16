@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { seedOrSnapshot } from "../lib/feeds";
 
 /**
  * Single ticker tile. Subscribes to a feed (provided as `subscribe` prop)
@@ -9,8 +10,10 @@ import { useEffect, useRef, useState } from "react";
  *   currency                         — "$" "₺" "€" "" — prefix on price
  *   decimals                         — number of decimals to format
  *   subscribe(cb)                    — fn that returns an unsubscribe
+ *   cacheKey                         — localStorage snapshot key (instant seed on mount)
  *   alwaysLive                       — bool: render LIVE dot regardless of market hours
  *   isOpen                           — bool: market is open right now (drives LIVE/closed pill when not alwaysLive)
+ *   staleMs                          — age after which a value is considered stale (default 120s)
  */
 export default function TickerTile({
   sym,
@@ -20,15 +23,21 @@ export default function TickerTile({
   currency = "",
   decimals = 2,
   subscribe,
+  cacheKey,
   alwaysLive = false,
   isOpen = true,
+  staleMs = 120_000,
 }) {
-  const [price, setPrice] = useState(null);
-  const [changePct, setChangePct] = useState(null);
+  // Seed synchronously from the persisted snapshot so the tile paints a real
+  // price on the very first render — never an empty skeleton if we've ever
+  // seen this ticker before.
+  const seed = cacheKey ? seedOrSnapshot(cacheKey) : null;
+  const [price, setPrice] = useState(seed?.price ?? null);
+  const [changePct, setChangePct] = useState(seed?.changePct ?? null);
   const [sparkline, setSparkline] = useState(null);
-  const [ts, setTs] = useState(null);
+  const [ts, setTs] = useState(seed?.ts ?? null);
   const [flash, setFlash] = useState(null);
-  const prevPriceRef = useRef(null);
+  const prevPriceRef = useRef(seed?.price ?? null);
   const flashTimerRef = useRef(null);
 
   useEffect(() => {
@@ -54,16 +63,24 @@ export default function TickerTile({
     };
   }, [subscribe]);
 
-  const isStale = ts != null && Date.now() - ts > 90_000;
+  const hasData = Number.isFinite(price);
+  const isStale = ts != null && Date.now() - ts > staleMs;
+  // Live dot:
+  //   crypto (alwaysLive): live unless data is stale
+  //   markets: open → live (or stale if data old); closed → "Kapalı" w/ last close
   const liveCls = alwaysLive
-    ? "is-live"
+    ? isStale
+      ? "is-stale"
+      : "is-live"
     : !isOpen
     ? ""
     : isStale
     ? "is-stale"
     : "is-live";
   const liveLabel = alwaysLive
-    ? "Canlı"
+    ? isStale
+      ? "Gecikmeli"
+      : "Canlı"
     : !isOpen
     ? "Kapalı"
     : isStale
@@ -94,8 +111,8 @@ export default function TickerTile({
         <span className={`live-dot ${liveCls}`}>{liveLabel}</span>
       </div>
 
-      <div className={`tile-price ${flash ? `flash-${flash}` : ""} ${price == null ? "is-placeholder" : ""}`}>
-        {price == null ? (
+      <div className={`tile-price ${flash ? `flash-${flash}` : ""} ${!hasData ? "is-placeholder" : ""}`}>
+        {!hasData ? (
           <span className="skel" style={{ width: 110, height: 24 }} />
         ) : (
           <>{currency}{fmtPrice(price)}</>

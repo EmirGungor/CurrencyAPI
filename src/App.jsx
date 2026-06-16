@@ -70,6 +70,7 @@ export default function App() {
             currency="$"
             decimals={2}
             subscribe={subBtc}
+            cacheKey="crypto:BTCUSDT"
             alwaysLive
           />
           <TickerTile
@@ -80,6 +81,7 @@ export default function App() {
             currency="$"
             decimals={2}
             subscribe={subEth}
+            cacheKey="crypto:ETHUSDT"
             alwaysLive
           />
           <TickerTile
@@ -90,6 +92,7 @@ export default function App() {
             currency="₺"
             decimals={2}
             subscribe={subGold}
+            cacheKey="gold:GRAMTRY"
             isOpen={fxOpen}
           />
           <TickerTile
@@ -100,6 +103,7 @@ export default function App() {
             currency=""
             decimals={2}
             subscribe={subXu100}
+            cacheKey="index:.XU100"
             isOpen={bistOpen}
           />
           <TickerTile
@@ -110,6 +114,7 @@ export default function App() {
             currency=""
             decimals={2}
             subscribe={subIxic}
+            cacheKey="index:.IXIC"
             isOpen={usOpen}
           />
           <TickerTile
@@ -120,6 +125,7 @@ export default function App() {
             currency=""
             decimals={2}
             subscribe={subGspc}
+            cacheKey="index:.SPX"
             isOpen={usOpen}
           />
           <TickerTile
@@ -130,6 +136,7 @@ export default function App() {
             currency=""
             decimals={2}
             subscribe={subDji}
+            cacheKey="index:.DJI"
             isOpen={usOpen}
           />
           <TickerTile
@@ -140,18 +147,21 @@ export default function App() {
             currency=""
             decimals={2}
             subscribe={subVix}
+            cacheKey="index:.VIX"
             isOpen={usOpen}
           />
         </div>
 
         <footer className="footer">
-          <span>Veriler bilgilendirme amaçlıdır</span>
-          <span> · </span>
+          <span>Veriler bilgilendirme amaçlıdır · gecikmeli olabilir</span>
+          <br />
           <a href="https://api.frankfurter.dev" target="_blank" rel="noreferrer">Frankfurter</a>
           <span>·</span>
           <a href="https://www.binance.com" target="_blank" rel="noreferrer">Binance</a>
           <span>·</span>
-          <a href="https://finance.yahoo.com" target="_blank" rel="noreferrer">Yahoo</a>
+          <a href="https://www.cnbc.com" target="_blank" rel="noreferrer">CNBC</a>
+          <span>·</span>
+          <a href="https://finans.truncgil.com" target="_blank" rel="noreferrer">Truncgil</a>
         </footer>
       </div>
     </>
