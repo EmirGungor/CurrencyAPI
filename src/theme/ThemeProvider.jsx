@@ -1,36 +1,30 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
-import { loadTheme, saveTheme } from "../lib/storage";
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 
-const ThemeContext = createContext({
-  theme: "dark",
-  toggle: () => {},
-  setTheme: () => {},
-});
+const KEY = "crental:theme";
+const ThemeContext = createContext({ theme: "dark", toggle: () => {} });
+
+function loadTheme() {
+  try {
+    const t = localStorage.getItem(KEY);
+    if (t === "light" || t === "dark") return t;
+  } catch {}
+  return window.matchMedia?.("(prefers-color-scheme: light)").matches ? "light" : "dark";
+}
 
 export function ThemeProvider({ children }) {
-  const [theme, setThemeState] = useState(() => loadTheme());
+  const [theme, setTheme] = useState(loadTheme);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
+    try { localStorage.setItem(KEY, theme); } catch {}
   }, [theme]);
 
-  const setTheme = useCallback((next) => {
-    setThemeState(next);
-    saveTheme(next);
-  }, []);
-
   const toggle = useCallback(() => {
-    setThemeState((t) => {
-      const next = t === "dark" ? "light" : "dark";
-      saveTheme(next);
-      return next;
-    });
+    setTheme((t) => (t === "dark" ? "light" : "dark"));
   }, []);
 
-  const value = useMemo(() => ({ theme, toggle, setTheme }), [theme, toggle, setTheme]);
+  const value = useMemo(() => ({ theme, toggle, setTheme }), [theme, toggle]);
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 
-export function useTheme() {
-  return useContext(ThemeContext);
-}
+export const useTheme = () => useContext(ThemeContext);

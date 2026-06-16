@@ -73,6 +73,20 @@ function devApi() {
         if (!req.url) return next();
         const u = new URL(req.url, "http://x");
 
+        if (u.pathname === "/api/cnbc-quote") {
+          const symbols = u.searchParams.get("symbols") || "";
+          if (!symbols) {
+            res.statusCode = 400;
+            return res.end(JSON.stringify({ error: "missing symbols" }));
+          }
+          return passthrough(
+            res,
+            `https://quote.cnbc.com/quote-html-webservice/restQuote/symbolType/symbol?symbols=${encodeURIComponent(symbols)}&requestMethod=itv&noform=1&partnerId=2&fund=1&exthrs=1&output=json`,
+            false,
+            `cnbc:${symbols}`
+          );
+        }
+
         if (u.pathname === "/api/yfinance") {
           const symbols = u.searchParams.get("symbols") || "";
           if (!symbols) {
